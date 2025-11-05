@@ -133,6 +133,7 @@
     <ClCompile Include="Move.h" />
     <ClCompile Include="MoveGen.cpp" />
     <ClCompile Include="Magic.cpp" />
+    <ClCompile Include="Position.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Board.h" />

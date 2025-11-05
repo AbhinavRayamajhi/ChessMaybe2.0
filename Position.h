@@ -2,6 +2,7 @@
 
 #include "Board.h"
 #include "State.h"
+#include "Move.h"
 
 
 struct CheckInfo
@@ -16,3 +17,6 @@ struct Position
 	Board board;
 	State state;
 };
+
+Position makMove(int move, Board& board, State& state);
+//Position* unmakeMove(Position* history);

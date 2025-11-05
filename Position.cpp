@@ -1,0 +1,134 @@
+#include "Position.h"
+
+Position makMove(int move, Board& board, State& state)
+{
+	
+	int current = getCurrent(move);
+	int target = getTarget(move);
+	int piece = getPiece(move);
+	int promotionPiece = getPromotion(move);
+	bool isCapture = getIsCapture(move);
+	bool isDoublePush = getIsDoublePush(move);
+	bool isEnPassant = getIsEnPassant(move);
+	bool isCastling = getIsCastling(move);
+	
+
+	Bitboard* pawns = state.sideToMove ? &board.pieces[WhitePawn] : &board.pieces[BlackPawn];
+	Bitboard* knights = state.sideToMove ? &board.pieces[WhiteKnight] : &board.pieces[BlackKnight];
+	Bitboard* bishops = state.sideToMove ? &board.pieces[WhiteBishop] : &board.pieces[BlackBishop];
+	Bitboard* rooks = state.sideToMove ? &board.pieces[WhiteRook] : &board.pieces[BlackRook];
+	Bitboard* queens = state.sideToMove ? &board.pieces[WhiteQueen] : &board.pieces[BlackQueen];
+	Bitboard* king = state.sideToMove ? &board.pieces[WhiteKing] : &board.pieces[BlackKing];
+			
+	Bitboard* self = state.sideToMove ? &board.occupancy[White] : &board.occupancy[Black];
+	Bitboard* enemy = state.sideToMove ? &board.occupancy[Black] : &board.occupancy[White];
+	Bitboard* occ = &board.occupancy[Both];
+	
+
+	// update board using move
+	removeSquareFromBoard(board, current);
+	removeSquareFromBoard(board, target);
+
+	if (piece == Pawn)
+	{
+		if (isEnPassant)
+		{
+			removeSquareFromBoard(board, state.sideToMove ? target + 8 : target - 8);
+		}
+		
+		state.enPassantSquare = -1;
+
+		switch (promotionPiece)
+		{
+		case None: setBit(*pawns, target); break;
+		case Knight: setBit(*knights, target); break;
+		case Bishop: setBit(*bishops, target); break;
+		case Rook: setBit(*rooks, target); break;
+		case Queen: setBit(*queens, target); break;
+		}
+
+		if (isDoublePush)
+		{
+			state.enPassantSquare = state.sideToMove ? target - 8 : target + 8;
+		}
+	}
+	else if (piece == King)
+	{
+		if (isCastling)
+		{
+			switch (target)
+			{
+			case G1:
+				removeSquareFromBoard(board, H1);
+				setBit(*rooks, F1);
+				noWhiteCastlingRights(state);
+				break;
+			case C1:
+				removeSquareFromBoard(board, A1);
+				setBit(*rooks, D1);
+				noWhiteCastlingRights(state);
+				break;
+			case G8:
+				removeSquareFromBoard(board, H8);
+				setBit(*rooks, F8);
+				noBlackCastlingRights(state);
+				break;
+			case C8:
+				removeSquareFromBoard(board, A8);
+				setBit(*rooks, D8);
+				noBlackCastlingRights(state);
+				break;
+			}
+		}
+		else
+		{
+			if(state.sideToMove == White)
+				noWhiteCastlingRights(state);
+			else
+				noBlackCastlingRights(state);
+		}
+		setBit(*king, target);
+	}
+	else if (piece == Knight)
+	{
+		setBit(*knights, target);
+	}
+	else if (piece == Bishop)
+	{
+		setBit(*bishops, target);
+	}
+	else if (piece == Rook)
+	{
+		setBit(*rooks, target);
+	}
+	else if (piece == Queen)
+	{
+		setBit(*queens, target);
+	}
+	
+	updateOccupancy(board);
+
+	if (getBit(*rooks, target))
+	{
+		switch (target)
+		{
+		case H1:
+			state.castlingRights[WhiteKingSide] = false; break;
+		case A1:
+			state.castlingRights[WhiteQueenSide] = false; break;
+		case H8:
+			state.castlingRights[BlackKingSide] = false; break;
+		case A8:
+			state.castlingRights[BlackQueenSide] = false; break;
+		}
+	}
+
+	state.sideToMove ^= 1;
+	
+	Position p;
+
+	p.board = board;
+	p.state = state;
+
+	return p;
+}
