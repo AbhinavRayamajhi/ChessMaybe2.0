@@ -10,21 +10,27 @@ int main()
 	int moveList[256]{ 0 };
 	int* list = &moveList[0];
 
-	std::string FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNB1KB1R w KQkq - 0 1";
+	std::string FEN = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 9";
 	State state = stateFromFEN(FEN);
 	Board board = createBoard(FEN);
 	Magic::computeSliderAttack();
 	
-	std::array<Position, 3> history{ 0 };
-	Position* historyStart = &history[0];
+	std::vector<Position> history;
+	Position start(board, state);
+	history.push_back(start);
 
 	printBoard(board);
-	int move = createMove(8, 16, Pawn, None, 0, 0, 0, 0);
-	*historyStart = makMove(move, board, state);
-	printBoard(board);
 
-	list = MoveGen::generateLegalMoves(board, list, state.sideToMove, state.enPassantSquare, state.castlingRights);
-	std::cout << printMoveList(moveList);
+	//list = MoveGen::generateLegalMoves(board, list, state);
+	//printMoveList(moveList);
+
+	
+	int depth = 2;
+
+	std::cout << "Perft Test\n\n";
+	uint64_t nodes = Test::perfTest(start, history, depth, depth);
+	std::cout << "\nNodes: " << nodes << "\n";
+	
 }
 
 	

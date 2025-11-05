@@ -1,8 +1,8 @@
 #include "Position.h"
 
-Position makMove(int move, Board& board, State& state)
+void makeMove(int move, Board& board, State& state, std::vector<Position>& history)
 {
-	
+
 	int current = getCurrent(move);
 	int target = getTarget(move);
 	int piece = getPiece(move);
@@ -11,7 +11,7 @@ Position makMove(int move, Board& board, State& state)
 	bool isDoublePush = getIsDoublePush(move);
 	bool isEnPassant = getIsEnPassant(move);
 	bool isCastling = getIsCastling(move);
-	
+
 
 	Bitboard* pawns = state.sideToMove ? &board.pieces[WhitePawn] : &board.pieces[BlackPawn];
 	Bitboard* knights = state.sideToMove ? &board.pieces[WhiteKnight] : &board.pieces[BlackKnight];
@@ -19,11 +19,11 @@ Position makMove(int move, Board& board, State& state)
 	Bitboard* rooks = state.sideToMove ? &board.pieces[WhiteRook] : &board.pieces[BlackRook];
 	Bitboard* queens = state.sideToMove ? &board.pieces[WhiteQueen] : &board.pieces[BlackQueen];
 	Bitboard* king = state.sideToMove ? &board.pieces[WhiteKing] : &board.pieces[BlackKing];
-			
+
 	Bitboard* self = state.sideToMove ? &board.occupancy[White] : &board.occupancy[Black];
 	Bitboard* enemy = state.sideToMove ? &board.occupancy[Black] : &board.occupancy[White];
 	Bitboard* occ = &board.occupancy[Both];
-	
+
 
 	// update board using move
 	removeSquareFromBoard(board, current);
@@ -31,13 +31,16 @@ Position makMove(int move, Board& board, State& state)
 
 	if (piece == Pawn)
 	{
+		// if enPassant capture remove the captured piece
 		if (isEnPassant)
 		{
 			removeSquareFromBoard(board, state.sideToMove ? target + 8 : target - 8);
 		}
-		
+
+		// reset enPassant sq
 		state.enPassantSquare = -1;
 
+		// if promotion piece set the relevant bit to promoted piece
 		switch (promotionPiece)
 		{
 		case None: setBit(*pawns, target); break;
@@ -47,6 +50,7 @@ Position makMove(int move, Board& board, State& state)
 		case Queen: setBit(*queens, target); break;
 		}
 
+		// set enPassant sq if double push
 		if (isDoublePush)
 		{
 			state.enPassantSquare = state.sideToMove ? target - 8 : target + 8;
@@ -82,53 +86,53 @@ Position makMove(int move, Board& board, State& state)
 		}
 		else
 		{
-			if(state.sideToMove == White)
-				noWhiteCastlingRights(state);
-			else
-				noBlackCastlingRights(state);
+			if (state.sideToMove == White) noWhiteCastlingRights(state);
+			else noBlackCastlingRights(state);
 		}
 		setBit(*king, target);
 	}
-	else if (piece == Knight)
-	{
-		setBit(*knights, target);
-	}
-	else if (piece == Bishop)
-	{
-		setBit(*bishops, target);
-	}
-	else if (piece == Rook)
-	{
-		setBit(*rooks, target);
-	}
-	else if (piece == Queen)
-	{
-		setBit(*queens, target);
-	}
-	
+	else if (piece == Knight) { setBit(*knights, target); }
+	else if (piece == Bishop) { setBit(*bishops, target); }
+	else if (piece == Rook) { setBit(*rooks, target); }
+	else if (piece == Queen) { setBit(*queens, target); }
+
 	updateOccupancy(board);
 
-	if (getBit(*rooks, target))
+	// set castling right to false if not moved rook is target
+	Bitboard rookTest = *rooks;
+	while (rookTest)
 	{
-		switch (target)
+		int rookSq = lsb(rookTest);
+		clearLSB(rookTest);
+
+		if (target == rookTest)
 		{
-		case H1:
-			state.castlingRights[WhiteKingSide] = false; break;
-		case A1:
-			state.castlingRights[WhiteQueenSide] = false; break;
-		case H8:
-			state.castlingRights[BlackKingSide] = false; break;
-		case A8:
-			state.castlingRights[BlackQueenSide] = false; break;
+			switch (target)
+			{
+			case H1:
+				state.castlingRights[WhiteKingSide] = false; break;
+			case A1:
+				state.castlingRights[WhiteQueenSide] = false; break;
+			case H8:
+				state.castlingRights[BlackKingSide] = false; break;
+			case A8:
+				state.castlingRights[BlackQueenSide] = false; break;
+			}
 		}
 	}
 
 	state.sideToMove ^= 1;
-	
-	Position p;
 
-	p.board = board;
-	p.state = state;
+	Position p(board, state);
 
-	return p;
+	history.push_back(p);
+}
+
+void unmakeMove(Board& board, State& state, std::vector<Position>& history)
+{
+	history.pop_back();
+	Position prev = history.back();
+
+	board = prev.board;
+	state = prev.state;
 }

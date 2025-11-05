@@ -3,8 +3,8 @@
 namespace MoveGen
 {
 	// bishop and rook attack arrays
-	std::array<std::array<Bitboard, 512>, 64> BISHOP_ATTACKS{ 0 };
-	std::array<std::array<Bitboard, 4096>, 64> ROOK_ATTACKS{ 0 };
+	std::array<Bitboard, 88772> BISHOP_ATTACKS{ 0 };
+	std::array<Bitboard, 88772> ROOK_ATTACKS{ 0 };
 
 
 	// pawn
@@ -264,9 +264,8 @@ namespace MoveGen
 	inline Bitboard getBishopAttacks(Bitboard occ, int sq)
 	{
 		occ &= BISHOP_MASKS[sq];
-		occ *= BISHOP_MAGICS[sq];
-		occ >>= BISHOP_SHIFTS[sq];
-		return BISHOP_ATTACKS[sq][occ];
+		uint64_t index = ((occ * BISHOP_MAGICS[sq]) >> 55) + BISHOP_OFFSETS[sq];
+		return BISHOP_ATTACKS[index];
 	}
 
 	// generate pseudo bishop moves
@@ -309,9 +308,8 @@ namespace MoveGen
 	inline Bitboard getRookAttacks(Bitboard occ, int sq)
 	{
 		occ &= ROOK_MASKS[sq];
-		occ *= ROOK_MAGICS[sq];
-		occ >>= ROOK_SHIFTS[sq];
-		return ROOK_ATTACKS[sq][occ];
+		uint64_t index = ((occ * ROOK_MAGICS[sq]) >> 52) + ROOK_OFFSETS[sq];
+		return ROOK_ATTACKS[index];
 	}
 
 	// generate pseudo bishop moves
@@ -597,31 +595,31 @@ namespace MoveGen
 		return true;
 	}
 
-	int* generateLegalMoves(const Board& board, int* moveList, bool sideToMove, int ePSq, std::array<bool, 4> castling)
+	int* generateLegalMoves(const Board& board, int* moveList, const State& state)
 	{
 		int* start = moveList;
 		CheckInfo ci;
 
-		if (sideToMove == White)
+		if (state.sideToMove == White)
 		{
 			ci = getCheckInfo<White>(board);
-			switch (ePSq)
+			switch (state.enPassantSquare)
 			{
-			case A1: moveList = generatePseudoMove<White, A1>(board, moveList);  break;
-			case B1: moveList = generatePseudoMove<White, B1>(board, moveList);  break;
-			case C1: moveList = generatePseudoMove<White, C1>(board, moveList);  break;
-			case D1: moveList = generatePseudoMove<White, D1>(board, moveList);  break;
-			case E1: moveList = generatePseudoMove<White, E1>(board, moveList);  break;
-			case F1: moveList = generatePseudoMove<White, F1>(board, moveList);  break;
-			case G1: moveList = generatePseudoMove<White, G1>(board, moveList);  break;
-			case H1: moveList = generatePseudoMove<White, H1>(board, moveList);  break;
+			case A6: moveList = generatePseudoMove<White, A6>(board, moveList);  break;
+			case B6: moveList = generatePseudoMove<White, B6>(board, moveList);  break;
+			case C6: moveList = generatePseudoMove<White, C6>(board, moveList);  break;
+			case D6: moveList = generatePseudoMove<White, D6>(board, moveList);  break;
+			case E6: moveList = generatePseudoMove<White, E6>(board, moveList);  break;
+			case F6: moveList = generatePseudoMove<White, F6>(board, moveList);  break;
+			case G6: moveList = generatePseudoMove<White, G6>(board, moveList);  break;
+			case H6: moveList = generatePseudoMove<White, H6>(board, moveList);  break;
 			default: moveList = generatePseudoMove<White, -1>(board, moveList);  break;
 			}
-			if (castling[0])
+			if (state.castlingRights[0])
 			{
 				moveList = generateWhiteCastles<true, false>(moveList);
 			}
-			if (castling[1])
+			if (state.castlingRights[1])
 			{
 				moveList = generateWhiteCastles<false, true>(moveList);
 			}
@@ -630,7 +628,7 @@ namespace MoveGen
 			{
 				int move = *m;
 
-				if (isLegalMove<White>(move, board, ci, ePSq))
+				if (isLegalMove<White>(move, board, ci, state.enPassantSquare))
 				{
 					*start++ = move;
 				}
@@ -639,24 +637,24 @@ namespace MoveGen
 		else
 		{
 			ci = getCheckInfo<Black>(board);
-			switch (ePSq)
+			switch (state.enPassantSquare)
 			{
-			case A8: moveList = generatePseudoMove<Black, A8>(board, moveList);  break;
-			case B8: moveList = generatePseudoMove<Black, B8>(board, moveList);  break;
-			case C8: moveList = generatePseudoMove<Black, C8>(board, moveList);  break;
-			case D8: moveList = generatePseudoMove<Black, D8>(board, moveList);  break;
-			case E8: moveList = generatePseudoMove<Black, E8>(board, moveList);  break;
-			case F8: moveList = generatePseudoMove<Black, F8>(board, moveList);  break;
-			case G8: moveList = generatePseudoMove<Black, G8>(board, moveList);  break;
-			case H8: moveList = generatePseudoMove<Black, H8>(board, moveList);  break;
+			case A3: moveList = generatePseudoMove<Black, A3>(board, moveList);  break;
+			case B3: moveList = generatePseudoMove<Black, B3>(board, moveList);  break;
+			case C3: moveList = generatePseudoMove<Black, C3>(board, moveList);  break;
+			case D3: moveList = generatePseudoMove<Black, D3>(board, moveList);  break;
+			case E3: moveList = generatePseudoMove<Black, E3>(board, moveList);  break;
+			case F3: moveList = generatePseudoMove<Black, F3>(board, moveList);  break;
+			case G3: moveList = generatePseudoMove<Black, G3>(board, moveList);  break;
+			case H3: moveList = generatePseudoMove<Black, H3>(board, moveList);  break;
 			default: moveList = generatePseudoMove<Black, -1>(board, moveList);  break;
 			}
 
-			if (castling[2])
+			if (state.castlingRights[2])
 			{
 				moveList = generateBlackCastles<true, false>(moveList);
 			}
-			if (castling[3])
+			if (state.castlingRights[3])
 			{
 				moveList = generateBlackCastles<false, true>(moveList);
 			}
@@ -666,7 +664,7 @@ namespace MoveGen
 			{
 				int move = *m;
 
-				if (isLegalMove<Black>(move, board, ci, ePSq))
+				if (isLegalMove<Black>(move, board, ci, state.enPassantSquare))
 				{
 					*start++ = move;
 				}

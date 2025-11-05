@@ -37,9 +37,8 @@ inline void printMove(int move)
 	}
 }
 
-inline int printMoveList(int moveList[])
+inline void printMoveList(int moveList[])
 {
-	int nodes = 0;
 	std::cout << "Possible Moves: " << '\n';
 	for (int i = 0; i < 256; ++i)
 	{
@@ -48,9 +47,7 @@ inline int printMoveList(int moveList[])
 			break;
 		}
 		printMove(moveList[i]);
-		nodes++;
 		std::cout << ", ";
 	}
-	std::cout << std::endl;
-	return nodes;
+	std::cout << "\n\n";
 }

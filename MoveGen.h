@@ -15,9 +15,9 @@
 namespace MoveGen
 {
 	// bishop and rook attack arrays
-	extern std::array<std::array<Bitboard, 512>, 64> BISHOP_ATTACKS;
-	extern std::array<std::array<Bitboard, 4096>, 64> ROOK_ATTACKS;
+	extern std::array<Bitboard, 88772> BISHOP_ATTACKS;
+	extern std::array<Bitboard, 88772> ROOK_ATTACKS;
 	extern std::array<std::array<Bitboard, 64>, 64> RAY_MASKS;
 
-	int* generateLegalMoves(const Board& board, int* moveList, bool sideToMove, int ePSq, std::array<bool, 4> castling);
+	int* generateLegalMoves(const Board& board, int* moveList, const State& state);
 }

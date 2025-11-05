@@ -79,24 +79,21 @@ namespace Magic
 	{
 		for (int sq = 0; sq < 64; ++sq)
 		{
-			int bishopBits = 64 - BISHOP_SHIFTS[sq];
-			int rookBits = 64 - ROOK_SHIFTS[sq];
-
-			int bishopEntries = 1 << bishopBits;
-			int rookEntries = 1 << rookBits;
+			int bishopEntries = 1 << 9;
+			int rookEntries = 1 << 12;
 
 			for (int i = 0; i < bishopEntries; ++i)
 			{
 				Bitboard blockers = generateBlockers(i, BISHOP_MASKS[sq]);
-				Bitboard index = (blockers * BISHOP_MAGICS[sq]) >> BISHOP_SHIFTS[sq];
-				MoveGen::BISHOP_ATTACKS[sq][index] = bishopAttackForBlocker(sq, blockers);
+				Bitboard index = ((blockers * BISHOP_MAGICS[sq]) >> 55) + BISHOP_OFFSETS[sq];
+				MoveGen::BISHOP_ATTACKS[index] = bishopAttackForBlocker(sq, blockers);
 			}
 
 			for (int i = 0; i < rookEntries; ++i)
 			{
 				Bitboard blockers = generateBlockers(i, ROOK_MASKS[sq]);
-				Bitboard index = (blockers * ROOK_MAGICS[sq]) >> ROOK_SHIFTS[sq];
-				MoveGen::ROOK_ATTACKS[sq][index] = rookAttackForBlocker(sq, blockers);
+				Bitboard index = ((blockers * ROOK_MAGICS[sq]) >> 52) + ROOK_OFFSETS[sq];
+				MoveGen::ROOK_ATTACKS[index] = rookAttackForBlocker(sq, blockers);
 			}
 		}
 	}

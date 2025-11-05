@@ -16,7 +16,10 @@ struct Position
 {
 	Board board;
 	State state;
+
+	Position(Board b, State s)
+		:board(b), state(s) {};
 };
 
-Position makMove(int move, Board& board, State& state);
-//Position* unmakeMove(Position* history);
+void makeMove(int move, Board& board, State& state, std::vector<Position>& history);
+void unmakeMove(Board& board, State& state, std::vector<Position>& history);
