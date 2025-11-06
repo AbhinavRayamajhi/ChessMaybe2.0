@@ -1,10 +1,8 @@
 #pragma once
 
-#include "Attacks.h"
-#pragma once
-
 #include <algorithm>
 
+#include "Attacks.h"
 #include "Board.h"
 #include "Definitions.h"
 #include "Helpers.h"

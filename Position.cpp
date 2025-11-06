@@ -2,6 +2,8 @@
 
 void makeMove(int move, Board& board, State& state, std::vector<Position>& history)
 {
+	Position p(board, state);
+	history.push_back(p);
 
 	int current = getCurrent(move);
 	int target = getTarget(move);
@@ -24,6 +26,18 @@ void makeMove(int move, Board& board, State& state, std::vector<Position>& histo
 	Bitboard* enemy = state.sideToMove ? &board.occupancy[Black] : &board.occupancy[White];
 	Bitboard* occ = &board.occupancy[Both];
 
+	// set castling right to false if not moved rook is target
+	switch (target)
+	{
+	case H1:
+		state.castlingRights[WhiteKingSide] = false; break;
+	case A1:
+		state.castlingRights[WhiteQueenSide] = false; break;
+	case H8:
+		state.castlingRights[BlackKingSide] = false; break;
+	case A8:
+		state.castlingRights[BlackQueenSide] = false; break;
+	}
 
 	// update board using move
 	removeSquareFromBoard(board, current);
@@ -34,11 +48,8 @@ void makeMove(int move, Board& board, State& state, std::vector<Position>& histo
 		// if enPassant capture remove the captured piece
 		if (isEnPassant)
 		{
-			removeSquareFromBoard(board, state.sideToMove ? target + 8 : target - 8);
+			removeSquareFromBoard(board, state.sideToMove ? target - 8 : target + 8);
 		}
-
-		// reset enPassant sq
-		state.enPassantSquare = -1;
 
 		// if promotion piece set the relevant bit to promoted piece
 		switch (promotionPiece)
@@ -49,14 +60,18 @@ void makeMove(int move, Board& board, State& state, std::vector<Position>& histo
 		case Rook: setBit(*rooks, target); break;
 		case Queen: setBit(*queens, target); break;
 		}
-
-		// set enPassant sq if double push
-		if (isDoublePush)
-		{
-			state.enPassantSquare = state.sideToMove ? target - 8 : target + 8;
-		}
 	}
-	else if (piece == King)
+
+	// reset enPassant sq
+	state.enPassantSquare = -1;
+
+	// set enPassant sq if double push
+	if (isDoublePush)
+	{
+		state.enPassantSquare = state.sideToMove ? target - 8 : target + 8;
+	}
+	
+	if (piece == King)
 	{
 		if (isCastling)
 		{
@@ -91,48 +106,39 @@ void makeMove(int move, Board& board, State& state, std::vector<Position>& histo
 		}
 		setBit(*king, target);
 	}
+	else if (piece == Rook)
+	{
+		setBit(*rooks, target);
+
+		// if rook moved from orig square, cancel castle rights
+		switch (current)
+		{
+		case H1:
+			state.castlingRights[0] = false; break;
+		case A1:
+			state.castlingRights[1] = false; break;
+		case H8:
+			state.castlingRights[2] = false; break;
+		case A8:
+			state.castlingRights[3] = false; break;
+		}
+
+	}
 	else if (piece == Knight) { setBit(*knights, target); }
 	else if (piece == Bishop) { setBit(*bishops, target); }
-	else if (piece == Rook) { setBit(*rooks, target); }
 	else if (piece == Queen) { setBit(*queens, target); }
 
 	updateOccupancy(board);
 
-	// set castling right to false if not moved rook is target
-	Bitboard rookTest = *rooks;
-	while (rookTest)
-	{
-		int rookSq = lsb(rookTest);
-		clearLSB(rookTest);
-
-		if (target == rookTest)
-		{
-			switch (target)
-			{
-			case H1:
-				state.castlingRights[WhiteKingSide] = false; break;
-			case A1:
-				state.castlingRights[WhiteQueenSide] = false; break;
-			case H8:
-				state.castlingRights[BlackKingSide] = false; break;
-			case A8:
-				state.castlingRights[BlackQueenSide] = false; break;
-			}
-		}
-	}
-
 	state.sideToMove ^= 1;
-
-	Position p(board, state);
-
-	history.push_back(p);
 }
 
 void unmakeMove(Board& board, State& state, std::vector<Position>& history)
 {
-	history.pop_back();
 	Position prev = history.back();
 
 	board = prev.board;
 	state = prev.state;
+
+	history.pop_back();
 }

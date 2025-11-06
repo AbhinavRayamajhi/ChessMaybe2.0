@@ -60,12 +60,21 @@ namespace MoveGen
 	}
 
 	template <bool sideToMove>
-	Bitboard pawnAttacksFromSquare(int sq)
+	Bitboard pawnLeftAttacksFromSquare(int sq, Bitboard enemy)
 	{
 		if (sideToMove == White)
-			return (1ULL << (sq + 7)) | (1ULL << (sq + 9));
+			return (1ULL << (sq + 7)) & ~FILE_H & enemy;
 		else
-			return (1ULL << (sq - 7)) | (1ULL << (sq - 9));
+			return (1ULL << (sq - 9)) & ~FILE_H & enemy;
+	}
+
+	template <bool sideToMove>
+	Bitboard pawnRightAttacksFromSquare(int sq, Bitboard enemy)
+	{
+		if (sideToMove == White)
+			return (1ULL << (sq + 9)) & ~FILE_A & enemy;
+		else
+			return (1ULL << (sq - 7)) & ~FILE_A & enemy;
 	}
 
 	// generate pseudo pawn pushes
@@ -414,12 +423,14 @@ namespace MoveGen
 		Bitboard enemyK = sideToMove ? board.pieces[BlackKing]   : board.pieces[WhiteKing];
 		
 		// calculate all attacks from the sq and see if the corresponding enemy piece is in that attack
-		attackers |= pawnAttacksFromSquare<sideToMove>(sq) & enemyP;
+		attackers |= pawnLeftAttacksFromSquare<sideToMove>(sq, enemyP);
+		attackers |= pawnRightAttacksFromSquare<sideToMove>(sq, enemyP);
 		attackers |= KNIGHT_ATTACKS[sq] & enemyN;
 		attackers |= getBishopAttacks(board.occupancy[Both], sq) & enemyB;
 		attackers |= getRookAttacks(board.occupancy[Both], sq) & enemyR;
 		attackers |= getQueenAttacks(board.occupancy[Both], sq) & enemyQ;
 		attackers |= KING_ATTACKS[sq] & enemyK;
+
 
 		return attackers;
 	}
@@ -535,22 +546,33 @@ namespace MoveGen
 		// King moves: target square must NOT be attacked
 		if (getPiece(move) == King)
 		{
-			if (squareAttackers<sideToMove>(board, getTarget(move)))
-				return false;
+			// We need to check a board without king to prevent x-ray moves from sneaking in
+			Board b = board;
+			removeSquareFromBoard(b, kSq);
+			updateOccupancy(b);
 
+			if (squareAttackers<sideToMove>(b, getTarget(move)))
+			{
+				return false;
+			}
+				
 			if (getIsCastling(move))
 			{
+				// if check no castling
+				if(squareAttackers<sideToMove>(board, getCurrent(move)))
+					return false;
+
 				switch (getTarget(move))
 				{
 				case G1: 
 					return !(squareAttackers<sideToMove>(board, F1) || getBit(board.occupancy[Both], F1) 
 						|| getBit(board.occupancy[Both], G1));
 				case C1: return !(squareAttackers<sideToMove>(board, D1) || getBit(board.occupancy[Both], D1)
-					|| getBit(board.occupancy[Both], C1));
+					|| getBit(board.occupancy[Both], C1) || getBit(board.occupancy[Both], B1));
 				case G8: return !(squareAttackers<sideToMove>(board, F8) || getBit(board.occupancy[Both], F8)
 					|| getBit(board.occupancy[Both], G8));
 				case C8: return !(squareAttackers<sideToMove>(board, D8) || getBit(board.occupancy[Both], D8)
-					|| getBit(board.occupancy[Both], C8));
+					|| getBit(board.occupancy[Both], C8) || getBit(board.occupancy[Both], B8));
 				}
 			}
 			return true;
@@ -562,7 +584,8 @@ namespace MoveGen
 		// If piece is pinned, it must move along the ray between king and target
 		if ((1ULL << getCurrent(move)) & ci.pinned)
 		{
-			if (!((1ULL << getCurrent(move)) & getRaysBetweenSquare(kSq, getTarget(move))))
+			if (!((1ULL << getCurrent(move)) & getRaysBetweenSquare(kSq, getTarget(move)) ||
+				(1ULL << getTarget(move)) & getRaysBetweenSquare(kSq, getCurrent(move))))
 				return false;
 		}
 
@@ -578,13 +601,13 @@ namespace MoveGen
 			{
 				popBit(b.pieces[WhitePawn], getCurrent(move));
 				setBit(b.pieces[WhitePawn], ePSq);
-				popBit(b.pieces[BlackPawn], ePSq + 8);
+				popBit(b.pieces[BlackPawn], ePSq - 8);
 			}
 			else
 			{
 				popBit(b.pieces[BlackPawn], getCurrent(move));
 				setBit(b.pieces[BlackPawn], ePSq);
-				popBit(b.pieces[WhitePawn], ePSq - 8);
+				popBit(b.pieces[WhitePawn], ePSq + 8);
 			}
 
 			updateOccupancy(b);
@@ -603,6 +626,7 @@ namespace MoveGen
 		if (state.sideToMove == White)
 		{
 			ci = getCheckInfo<White>(board);
+
 			switch (state.enPassantSquare)
 			{
 			case A6: moveList = generatePseudoMove<White, A6>(board, moveList);  break;
@@ -624,6 +648,7 @@ namespace MoveGen
 				moveList = generateWhiteCastles<false, true>(moveList);
 			}
 
+			
 			for (int* m = start; m != moveList; ++m)
 			{
 				int move = *m;

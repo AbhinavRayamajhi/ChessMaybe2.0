@@ -45,8 +45,8 @@ inline State stateFromFEN(std::string FEN)
 	{
 		if (c == '-') { break; }
 		else if (c == 'K') { state.castlingRights[WhiteKingSide] = true; }
-		else if (c == 'k') { state.castlingRights[WhiteQueenSide] = true; }
-		else if (c == 'Q') { state.castlingRights[BlackKingSide] = true; }
+		else if (c == 'k') { state.castlingRights[BlackKingSide] = true;  }
+		else if (c == 'Q') { state.castlingRights[WhiteQueenSide] = true; }
 		else if (c == 'q') { state.castlingRights[BlackQueenSide] = true; }
 	}
 	

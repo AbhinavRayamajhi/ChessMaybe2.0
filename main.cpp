@@ -1,4 +1,7 @@
+
+#include <chrono>
 #include <fstream>
+#include <iostream>
 
 #include "MoveGen.h"
 #include "Test.h"
@@ -10,27 +13,29 @@ int main()
 	int moveList[256]{ 0 };
 	int* list = &moveList[0];
 
-	std::string FEN = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 9";
+	std::string FEN = "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1 ";
 	State state = stateFromFEN(FEN);
 	Board board = createBoard(FEN);
 	Magic::computeSliderAttack();
-	
+
 	std::vector<Position> history;
-	Position start(board, state);
-	history.push_back(start);
+	Position current(board, state);
+	
+	std::cout << state.sideToMove;
 
 	printBoard(board);
-
-	//list = MoveGen::generateLegalMoves(board, list, state);
-	//printMoveList(moveList);
-
 	
-	int depth = 2;
+	int depth = 6;
 
+	auto start = std::chrono::steady_clock::now();
 	std::cout << "Perft Test\n\n";
-	uint64_t nodes = Test::perfTest(start, history, depth, depth);
+	uint64_t nodes = Test::perfTest(current, history, depth, depth);
 	std::cout << "\nNodes: " << nodes << "\n";
-	
+	auto end = std::chrono::steady_clock::now();
+
+	auto duration = end - start;
+
+	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() / 1000.0 << " s";
 }
 
 	

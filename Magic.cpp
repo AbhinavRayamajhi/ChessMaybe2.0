@@ -40,7 +40,7 @@ namespace Magic
 
 			if (getBit(blockers, n)) break;
 		}
-		for (int s = sq + South; s > 0; s += South)
+		for (int s = sq + South; s >= 0; s += South)
 		{
 			attack |= 1ULL << s;
 			if (getBit(blockers, s)) break;

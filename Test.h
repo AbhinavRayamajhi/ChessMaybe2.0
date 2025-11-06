@@ -7,7 +7,7 @@
 
 namespace Test
 {
-	inline uint64_t perfTest(Position& p, std::vector<Position> history, int depth, int rootDepth)
+	inline uint64_t perfTest(Position p, std::vector<Position> history, int depth, int rootDepth)
 	{
 		if (depth == 0) return 1ULL;
 
@@ -18,16 +18,26 @@ namespace Test
 
 		for (int i = 0; moveList[i] != 0; ++i)
 		{
+			// make move calculate deeper and unmake
 			makeMove(moveList[i], p.board, p.state, history);
 			uint64_t node = perfTest(p, history, depth - 1, rootDepth);
 			unmakeMove(p.board, p.state, history);
 
+			// print out nodes after each move from the start position
 			if (rootDepth == depth)
 			{
 				printMove(moveList[i]);
 				std::cout << " : " << node << '\n';
 			}
-
+			/*
+			// print 1 move deeper for debugging
+			if (rootDepth - 1 == depth)
+			{
+				std::cout << "\t";
+				printMove(moveList[i]);
+				std::cout << " : " << node << '\n';
+			}
+			*/
 			nodes += node;
 		}
 
