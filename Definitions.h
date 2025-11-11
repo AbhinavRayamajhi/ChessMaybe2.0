@@ -57,12 +57,12 @@ enum Directions
 };
 
 // int to piece string array for printing promotions for move
-const std::array<std::string, 8> intToPieceString
+inline const std::array<std::string, 8> intToPieceString
 { "", "P", "N", "B", "R", "Q", "K", "F"
 };
 
 // char to int rank mapping
-const std::map<char, int> fileToInt
+inline const std::map<char, int> fileToInt
 {
 	{'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}, {'e', 4}, {'f', 5}, { 'g', 6 }, {'h', 7}
 };

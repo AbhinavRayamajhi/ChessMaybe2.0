@@ -18,7 +18,14 @@ struct Position
 	State state;
 
 	Position(Board b, State s)
-		:board(b), state(s) {};
+		:board(b), state(s) 
+	{
+	};
+
+	Position(std::string FEN)
+		:board(createBoard(FEN)), state(stateFromFEN(FEN)) 
+	{
+	};
 };
 
 void makeMove(int move, Board& board, State& state, std::vector<Position>& history);

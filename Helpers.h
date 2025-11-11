@@ -9,7 +9,6 @@ inline void popBit(Bitboard& b, int sq) { b = b & ~(1ULL << sq); }
 inline void setBit(Bitboard& b, int sq) { b = b | (1ULL << sq); }
 inline bool getBit(Bitboard b, int sq) { return b & (1ULL << sq); }
 inline void clearLSB(Bitboard& b) { b &= (b - 1); }
-
 inline  int lsb(Bitboard b) {return std::countr_zero(b);}
 
 // char to file/rank conversions
@@ -42,9 +41,7 @@ inline void printBitboard(Bitboard bb)
 			int sq = rank * 8 + file;
 			std::cout << (((bb >> sq) & 1ULL) ? '1' : '0') << " ";
 		}
-
 		std::cout << "\n";
 	}
-
 	std::cout << "\n   a b c d e f g h\n\n";
 }

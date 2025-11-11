@@ -12,6 +12,8 @@
 
 namespace MoveGen
 {
+	Bitboard isKingInCheck(const Board& board, bool sideToMove);
+
 	// bishop and rook attack arrays
 	extern std::array<Bitboard, 88772> BISHOP_ATTACKS;
 	extern std::array<Bitboard, 88772> ROOK_ATTACKS;

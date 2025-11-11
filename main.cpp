@@ -6,36 +6,34 @@
 #include "MoveGen.h"
 #include "Test.h"
 #include "Magic.h"
+#include "Search.h"
 
 int main()
 {
-
+	// initialization
 	int moveList[256]{ 0 };
 	int* list = &moveList[0];
 
-	std::string FEN = "r2q1rk1/pP1p2pp/Q4n2/bbp1p3/Np6/1B3NBn/pPPP1PPP/R3K2R b KQ - 0 1 ";
-	State state = stateFromFEN(FEN);
-	Board board = createBoard(FEN);
+	std::string FEN = "rnbqkbnr/1ppppppp/p7/8/3P4/2N5/PPP1PPPP/R1BQKBNR b KQkq - 1 2";
+
+	Position current(FEN);
+	std::vector<Position> history;
 	Magic::computeSliderAttack();
 
-	std::vector<Position> history;
-	Position current(board, state);
+	printBoard(current.board);
 	
-	std::cout << state.sideToMove;
-
-	printBoard(board);
-	
-	int depth = 6;
+	// search
+	int depth = 7;
 
 	auto start = std::chrono::steady_clock::now();
-	std::cout << "Perft Test\n\n";
-	uint64_t nodes = Test::perfTest(current, history, depth, depth);
-	std::cout << "\nNodes: " << nodes << "\n";
+
+	int bestMove = Engine::getBestMove(current, depth);
+	std::cout << "\nBest Move: ";
+	printMove(bestMove);
+
 	auto end = std::chrono::steady_clock::now();
-
 	auto duration = end - start;
-
-	std::cout << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() / 1000.0 << " s";
+	std::cout << '\n' << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() << " ms";
 }
 
 	

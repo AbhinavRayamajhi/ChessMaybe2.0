@@ -435,6 +435,21 @@ namespace MoveGen
 		return attackers;
 	}
 
+	Bitboard isKingInCheck(const Board& board, bool sideToMove)
+	{
+		if (sideToMove == White)
+		{
+			int kSq = lsb(board.pieces[WhiteKing]);
+			return squareAttackers<White>(board, kSq);
+		}
+		else
+		{
+			int kSq = lsb(board.pieces[BlackKing]);
+			return squareAttackers<Black>(board, kSq);
+		}
+	}
+
+
 	//calculate rays between two squares
 	inline Bitboard getRaysBetweenSquare(int sq1, int sq2)
 	{

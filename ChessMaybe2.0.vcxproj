@@ -133,6 +133,7 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="Evaluation.h" />
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Move.h" />
     <ClCompile Include="MoveGen.cpp" />
@@ -147,6 +148,7 @@
     <ClInclude Include="Magic.h" />
     <ClInclude Include="MoveGen.h" />
     <ClInclude Include="Position.h" />
+    <ClInclude Include="Search.h" />
     <ClInclude Include="State.h" />
     <ClInclude Include="Test.h" />
   </ItemGroup>
