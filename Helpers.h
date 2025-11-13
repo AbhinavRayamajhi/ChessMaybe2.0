@@ -4,9 +4,9 @@
 #include <bit>
 #include "Definitions.h"
 
-inline uint64_t popCount(Bitboard b) { return __popcnt64(b); }
-inline void popBit(Bitboard& b, int sq) { b = b & ~(1ULL << sq); }
-inline void setBit(Bitboard& b, int sq) { b = b | (1ULL << sq); }
+inline  int popCount(Bitboard b) { return (int)__popcnt64(b); }
+inline void popBit(Bitboard& b, int sq) { b &= ~(1ULL << sq); }
+inline void setBit(Bitboard& b, int sq) { b |= (1ULL << sq); }
 inline bool getBit(Bitboard b, int sq) { return b & (1ULL << sq); }
 inline void clearLSB(Bitboard& b) { b &= (b - 1); }
 inline  int lsb(Bitboard b) {return std::countr_zero(b);}
@@ -28,6 +28,14 @@ inline std::string squareToString(int square)
 	char rank = '1' + getRankFromInt(square);
 	char file = 'a' + getFileFromInt(square);
 	return std::string() + file + rank;
+}
+
+inline int stringToSquare(std::string s)
+{
+	int rank = getRankFromChar(s[1]);
+	int file = getFileFromChar(s[0]);
+
+	return getSquareFromRF(rank, file);
 }
 
 inline void printBitboard(Bitboard bb)

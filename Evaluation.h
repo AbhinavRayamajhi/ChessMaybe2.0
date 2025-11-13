@@ -9,74 +9,25 @@ namespace Engine
 	enum PieceValue
 	{
 		PawnValue = 100,
-		KnightValue = 300,
+		KnightValue = 350,
 		BishopValue = 350,
-		RookValue = 500,
-		QueenValue = 800,
+		RookValue = 525,
+		QueenValue = 1000,
 		KingValue = 2147483647
 	};
 
 	inline int evaluate(Position p)
 	{
-		int checkScore = 0;
-
-		if (MoveGen::isKingInCheck(p.board, p.state.sideToMove))
-			checkScore -= 100;
-
-		int numWhitePawns{ 0 }, numWhiteKnights{ 0 }, numWhiteBishops{ 0 }, numWhiteRooks{ 0 }, numWhiteQueens{ 0 };
-		int numBlackPawns{ 0 }, numBlackKnights{ 0 }, numBlackBishops{ 0 }, numBlackRooks{ 0 }, numBlackQueens{ 0 };
-
-		while (p.board.pieces[WhitePawn])
-		{
-			clearLSB(p.board.pieces[WhitePawn]);
-			numWhitePawns++;
-		} 
-		while (p.board.pieces[WhiteKnight])
-		{
-			clearLSB(p.board.pieces[WhiteKnight]);
-			numWhiteKnights++;
-		}
-		while (p.board.pieces[WhiteBishop])
-		{
-			clearLSB(p.board.pieces[WhiteBishop]);
-			numWhiteBishops++;
-		}
-		while (p.board.pieces[WhiteRook])
-		{
-			clearLSB(p.board.pieces[WhiteRook]);
-			numWhiteRooks++;
-		}
-		while (p.board.pieces[WhiteQueen])
-		{
-			clearLSB(p.board.pieces[WhiteQueen]);
-			numWhiteQueens++;
-		}
-
-		while (p.board.pieces[BlackPawn])
-		{
-			clearLSB(p.board.pieces[BlackPawn]);
-			numBlackPawns++;
-		}
-		while (p.board.pieces[BlackKnight])
-		{
-			clearLSB(p.board.pieces[BlackKnight]);
-			numBlackKnights++;
-		}
-		while (p.board.pieces[BlackBishop])
-		{
-			clearLSB(p.board.pieces[BlackBishop]);
-			numBlackBishops++;
-		}
-		while (p.board.pieces[BlackRook])
-		{
-			clearLSB(p.board.pieces[BlackRook]);
-			numBlackRooks++;
-		}
-		while (p.board.pieces[BlackQueen])
-		{
-			clearLSB(p.board.pieces[BlackQueen]);
-			numBlackQueens++;
-		}
+		int numWhitePawns	{ popCount(p.board.pieces[WhitePawn]) },
+			numWhiteKnights	{ popCount(p.board.pieces[WhiteKnight]) }, 
+			numWhiteBishops	{ popCount(p.board.pieces[WhiteBishop]) }, 
+			numWhiteRooks	{ popCount(p.board.pieces[WhiteRook]) }, 
+			numWhiteQueens	{ popCount(p.board.pieces[WhiteQueen]) },
+			numBlackPawns	{ popCount(p.board.pieces[BlackPawn]) }, 
+			numBlackKnights	{ popCount(p.board.pieces[BlackKnight]) }, 
+			numBlackBishops	{ popCount(p.board.pieces[BlackBishop]) }, 
+			numBlackRooks	{ popCount(p.board.pieces[BlackRook]) }, 
+			numBlackQueens	{ popCount(p.board.pieces[BlackQueen]) };
 
 
 		int whiteScore = numWhitePawns * PawnValue + numWhiteKnights * KnightValue + numWhiteBishops * BishopValue
@@ -84,6 +35,45 @@ namespace Engine
 		int blackScore = numBlackPawns * PawnValue + numBlackKnights * KnightValue + numBlackBishops * BishopValue
 			+ numBlackRooks * RookValue + numBlackQueens * QueenValue;
 
-		return whiteScore - blackScore + checkScore;
+		if (p.board.pieces[WhitePawn] & 0x0000001818000000)
+			whiteScore += 20;
+		if (getBit(p.board.pieces[WhitePawn], A2))
+			whiteScore += 5;
+		if (getBit(p.board.pieces[WhitePawn], B2))
+			whiteScore += 5;
+		if (getBit(p.board.pieces[WhitePawn], C2))
+			whiteScore += 5;
+		if (getBit(p.board.pieces[WhitePawn], F2))
+			whiteScore += 5;
+		if (getBit(p.board.pieces[WhitePawn], G2))
+			whiteScore += 5;
+		if (getBit(p.board.pieces[WhitePawn], H2))
+			whiteScore += 5;
+
+		if (p.board.pieces[BlackPawn] & 0x0000001818000000)
+			blackScore += 20;
+		if (getBit(p.board.pieces[BlackPawn], A7))
+			blackScore += 5;
+		if (getBit(p.board.pieces[BlackPawn], B7))
+			blackScore += 5;
+		if (getBit(p.board.pieces[BlackPawn], C7))
+			blackScore += 5;
+		if (getBit(p.board.pieces[BlackPawn], F7))
+			blackScore += 5;
+		if (getBit(p.board.pieces[BlackPawn], G7))
+			blackScore += 5;
+		if (getBit(p.board.pieces[BlackPawn], H7))
+			blackScore += 5;
+
+		if (whiteScore > 2500)
+		{
+			if (getBit(p.board.pieces[WhiteQueen], D1)) whiteScore += 50;
+		}
+		if (blackScore > 2500)
+		{
+			if (getBit(p.board.pieces[BlackQueen], D8)) blackScore += 50;
+		}
+
+		return whiteScore - blackScore;
 	}
 }

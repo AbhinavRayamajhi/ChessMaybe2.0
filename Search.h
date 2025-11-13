@@ -11,16 +11,27 @@ namespace Engine
 {
 	inline int search(Position p, int depth, int alpha, int beta)
 	{
-		if (depth == 0) return evaluate(p);
-
-		int bestScore = p.state.sideToMove? -INF : INF;
+		if (depth == 0)
+		{
+			return evaluate(p);
+		}
+		int bestScore = p.state.sideToMove ? -65000 : 65000;
 		std::vector<Position> history;
 
 		int moveList[256]{ 0 };
 		MoveGen::generateLegalMoves(p.board, moveList, p.state);
 
-		if (MoveGen::isKingInCheck(p.board, p.state.sideToMove) && moveList[0] == 0)
-			return p.state.sideToMove ? -INF: INF;
+		if (moveList[0] == 0)
+		{
+			if (MoveGen::isKingInCheck(p.board, p.state.sideToMove))
+			{
+				return p.state.sideToMove ? -(INF + depth) : INF + depth;
+			}
+			else
+			{
+				return 0;
+			}
+		}
 
 		for (int i = 0; moveList[i] != 0; ++i)
 		{
@@ -38,7 +49,6 @@ namespace Engine
 				if (currentScore < bestScore) bestScore = currentScore;
 				if (currentScore < beta) beta = currentScore;
 			}
-
 			if (alpha >= beta) break;
 		}
 
@@ -53,7 +63,7 @@ namespace Engine
 		MoveGen::generateLegalMoves(p.board, moveList, p.state);
 
 		int bestMove = moveList[0];
-		int bestScore = 0;
+		int bestScore = p.state.sideToMove ? -65000 : 65000;
 		int alpha = -INF;
 		int beta = INF;
 
@@ -81,8 +91,6 @@ namespace Engine
 				}
 				if (currentScore < beta) beta = currentScore;
 			}
-
-			if (alpha >= beta) break;
 		}
 
 		return bestMove;

@@ -35,6 +35,8 @@ inline void printMove(int move)
 	{
 		std::cout << intToPieceString[getPromotion(move)];
 	}
+
+	std::cout << "\n\n";
 }
 
 inline void printMoveList(int moveList[])

@@ -355,6 +355,8 @@ namespace MoveGen
 		return moveList;
 	}
 
+	// Queen
+	
 	// retrieve queen moves from rook and bishop 
 	inline Bitboard getQueenAttacks(Bitboard occ, int sq)
 	{
@@ -410,6 +412,7 @@ namespace MoveGen
 		return moveList;
 	}
 
+	// checks if a particular square is being attacked by enemy pieces
 	template <bool sideToMove>
 	inline Bitboard squareAttackers(const Board& board, int sq)
 	{
@@ -435,6 +438,7 @@ namespace MoveGen
 		return attackers;
 	}
 
+	// checks if king is being attacked by enemy pieces
 	Bitboard isKingInCheck(const Board& board, bool sideToMove)
 	{
 		if (sideToMove == White)
@@ -449,15 +453,15 @@ namespace MoveGen
 		}
 	}
 
-
-	//calculate rays between two squares
+	// gets rays between two squares from precalculated array
 	inline Bitboard getRaysBetweenSquare(int sq1, int sq2)
 	{
 		return RAYS[sq1][sq2];
 	}
 
+	// calculates check info, pinned pieces, checkers and check masks
 	template <bool sideToMove>
-	inline CheckInfo getCheckInfo(const Board& board)
+	inline CheckInfo getCheckInfo(const Board& board, const int ePSq)
 	{
 		CheckInfo ci;
 		Bitboard occ = board.occupancy[Both];
@@ -496,7 +500,7 @@ namespace MoveGen
 
 					// if ray piece is an enemy sliding piece, the piece is pinned
 					if ((1ULL << sq) & (rook | queen))
-						ci.pinned |= 1ULL << maybePinned;
+						setBit(ci.pinned, maybePinned);
 				}
 			}
 		}
@@ -521,21 +525,22 @@ namespace MoveGen
 
 					// if ray piece is an enemy sliding piece, the piece is pinned
 					if ((1ULL << sq) & (bishop | queen))
-						ci.pinned |= 1ULL << maybePinned;
+						setBit(ci.pinned, maybePinned);
 				}
 			}
 		}
 
+		// check masks
 		if (!ci.checkers)
 		{
 			ci.checkMask = FULL_BOARD;
 		}
-		// check mask 
 		// single check
 		else if (popCount(ci.checkers) == 1)
 		{
 			int checkerSq = lsb(ci.checkers);
-			Bitboard mask = (1ULL << checkerSq);
+			Bitboard mask{ 0 };
+			setBit(mask, checkerSq);
 
 			// to allow blocking moves for slider checks
 			if (mask & enemySliders)
@@ -548,11 +553,10 @@ namespace MoveGen
 		{
 			ci.checkMask = EMPTY_BOARD;
 		}
-		// no check
-		
 		return ci;
 	}
 
+	// verifies if a given move is legal
 	template <bool sideToMove>
 	bool isLegalMove(int move, const Board& board, const CheckInfo& ci, int ePSq)
 	{
@@ -593,20 +597,6 @@ namespace MoveGen
 			return true;
 		}
 
-		// Non-king moves: if double-check, only king moves are allowed
-		if (popCount(ci.checkers) >= 2) return false;
-
-		// If piece is pinned, it must move along the ray between king and target
-		if ((1ULL << getCurrent(move)) & ci.pinned)
-		{
-			if (!((1ULL << getCurrent(move)) & getRaysBetweenSquare(kSq, getTarget(move)) ||
-				(1ULL << getTarget(move)) & getRaysBetweenSquare(kSq, getCurrent(move))))
-				return false;
-		}
-
-		// If single check, move must block or capture the checker
-		if (!(ci.checkMask & (1ULL << getTarget(move)))) return false;
-
 		// En-passant: simulate the capture and ensure king is not left in check
 		if (getIsEnPassant(move))
 		{
@@ -627,12 +617,29 @@ namespace MoveGen
 
 			updateOccupancy(b);
 
-			// if king is attacked after en-passant, the move is illegal
+			// if king is attacked after en-passant, the move is illegal else legal
 			if (squareAttackers<sideToMove>(b, kSq)) return false;
+			else return true;
 		}
+
+		// if double-check, only king moves are allowed
+		if (popCount(ci.checkers) >= 2) return false;
+
+		// If single check, move must block or capture the checker 
+		if (!getBit(ci.checkMask, getTarget(move))) return false;
+
+		// If piece is pinned, it must move along the ray between king and target or the target must be between king
+		// and current
+		if (getBit(ci.pinned, getCurrent(move)))
+		{
+			if (!getBit(getRaysBetweenSquare(kSq, getTarget(move)), getCurrent(move)) &&
+				!getBit(getRaysBetweenSquare(kSq, getCurrent(move)), getTarget(move)))
+				return false;
+		}
+		
 		return true;
 	}
-
+	// generate all legal moves by passing all pseduo moves through is legal function
 	int* generateLegalMoves(const Board& board, int* moveList, const State& state)
 	{
 		int* start = moveList;
@@ -640,7 +647,7 @@ namespace MoveGen
 
 		if (state.sideToMove == White)
 		{
-			ci = getCheckInfo<White>(board);
+			ci = getCheckInfo<White>(board, state.enPassantSquare);
 
 			switch (state.enPassantSquare)
 			{
@@ -667,7 +674,6 @@ namespace MoveGen
 			for (int* m = start; m != moveList; ++m)
 			{
 				int move = *m;
-
 				if (isLegalMove<White>(move, board, ci, state.enPassantSquare))
 				{
 					*start++ = move;
@@ -676,7 +682,7 @@ namespace MoveGen
 		}
 		else
 		{
-			ci = getCheckInfo<Black>(board);
+			ci = getCheckInfo<Black>(board, state.enPassantSquare);
 			switch (state.enPassantSquare)
 			{
 			case A3: moveList = generatePseudoMove<Black, A3>(board, moveList);  break;
