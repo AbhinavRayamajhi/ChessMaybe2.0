@@ -4,52 +4,118 @@
 #include <bit>
 #include "Definitions.h"
 
-inline  int popCount(Bitboard b) { return (int)__popcnt64(b); }
-inline void popBit(Bitboard& b, int sq) { b &= ~(1ULL << sq); }
-inline void setBit(Bitboard& b, int sq) { b |= (1ULL << sq); }
-inline bool getBit(Bitboard b, int sq) { return b & (1ULL << sq); }
-inline void clearLSB(Bitboard& b) { b &= (b - 1); }
-inline  int lsb(Bitboard b) {return std::countr_zero(b);}
+inline int popCount(Bitboard b) {
+
+	return __builtin_popcountll(b);
+}
+
+inline void resetBit(Bitboard& b, Square sq) {
+
+	b &= ~(1ULL << sq);
+}
+
+inline void setBit(Bitboard& b, Square sq) {
+
+	b |= (1ULL << sq);
+}
+
+inline bool flipBit(Bitboard& b, Square sq) {
+
+	b ^= (1ULL << sq);
+}
+
+inline bool getBit(Bitboard b, Square sq) {
+
+	return b & (1ULL << sq);
+}
+
+inline void clearLSB(Bitboard& b) {
+
+	b &= (b - 1);
+}
+
+inline Square getLSB(Bitboard b) {
+
+	return __builtin_ctzll(b);
+}
+
+inline Square popLSB(Bitboard& b) {
+
+	Square lsb = getLSB(b);
+	clearLSB(b);
+	return lsb;
+}
 
 // char to file/rank conversions
-inline int getFileFromChar(char c) { return fileToInt.at(c); }
-inline int getRankFromChar(char c) { return c - '1'; }
+inline File getFileFromChar(char c) {
+
+	return fileToInt.at(c);
+}
+
+inline Rank getRankFromChar(char c) {
+
+	return c - '1';
+}
 
 // square index to rank and file Conversions
-inline int getRankFromInt(int square) { return square >> 3; }
-inline int getFileFromInt(int square) { return square & 0b111UL; }
+inline Rank getRankFromInt(Square square) {
+
+	return (square >> 3) & 0b111;
+}
+
+inline File getFileFromInt(Square square) {
+
+	return square & 0b111;
+}
 
 // rank and file to square index conversion
-inline int getSquareFromRF(int rank, int file) { return (rank << 3) + file; }
+inline Square getSquareFromRF(Rank rank, File file) {
+
+	return (rank << 3) + file;
+}
 
 // square index to string conversion
-inline std::string squareToString(int square)
-{
+inline std::string squareToString(int square) {
+	
 	char rank = '1' + getRankFromInt(square);
 	char file = 'a' + getFileFromInt(square);
 	return std::string() + file + rank;
 }
 
-inline int stringToSquare(std::string s)
-{
-	int rank = getRankFromChar(s[1]);
-	int file = getFileFromChar(s[0]);
+inline Square stringToSquare(std::string s) {
+	
+	Rank rank = getRankFromChar(s[1]);
+	File file = getFileFromChar(s[0]);
 
 	return getSquareFromRF(rank, file);
 }
 
-inline void printBitboard(Bitboard bb)
-{
-	for (int rank = 7; rank >= 0; --rank)
-	{
-		std::cout << rank + 1 << "  ";
+inline void printBitboard(Bitboard bb) {
+	
+	for (Rank rank = 7; rank >= 0; --rank) {
 
-		for (int file = 0; file < 8; ++file)
-		{
-			int sq = rank * 8 + file;
+		std::cout << rank + 1 << "  ";
+		for (File file = 0; file < 8; ++file) {
+			
+			Square sq = rank * 8 + file;
 			std::cout << (((bb >> sq) & 1ULL) ? '1' : '0') << " ";
 		}
 		std::cout << "\n";
 	}
 	std::cout << "\n   a b c d e f g h\n\n";
+}
+
+static inline Bitboard bitboardShift(Bitboard bb, Direction dir) {
+
+    switch(dir) {
+        case NORTH            : return bb << 8; break;
+        case SOUTH            : return bb >> 8; break;
+        case EAST             : return (bb & ~FILE_H) << 1; break;
+        case WEST             : return (bb & ~FILE_A) >> 1; break;
+        case NORTH_EAST       : return (bb & ~FILE_H) << 9; break;
+        case NORTH_WEST       : return (bb & ~FILE_A) << 7; break;
+        case SOUTH_EAST       : return (bb & ~FILE_H) >> 7; break;
+        case SOUTH_WEST       : return (bb & ~FILE_A) >> 9; break;
+        default : return 0ULL;
+    }
 }

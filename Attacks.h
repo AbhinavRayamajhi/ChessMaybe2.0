@@ -3,8 +3,8 @@
 #include "Definitions.h"
 
 // pre-computed knight attacks
-constexpr std::array<Bitboard, 64> KNIGHT_ATTACKS
-{
+constexpr std::array<Bitboard, 64> KNIGHT_ATTACKS {
+
 	0x20400,				0x50800,				0xa1100,				0x142200,
 	0x284400,				0x508800,				0xa01000,				0x402000,
 	0x2040004,				0x5080008,				0xa110011,				0x14220022,
@@ -23,9 +23,9 @@ constexpr std::array<Bitboard, 64> KNIGHT_ATTACKS
 	0x44280000000000,		0x88500000000000,		0x10a00000000000,		0x20400000000000
 };
 
-constexpr std::array<Bitboard, 64> KING_ATTACKS
-{
-	0x302,					0x705,					0xe0a,					0x1c14, 
+constexpr std::array<Bitboard, 64> KING_ATTACKS {
+	
+	0x302,					0x705,					0xe0a,					0x1c14,
 	0x3828,					0x7050,					0xe0a0,					0xc040,
 	0x30203,				0x70507,				0xe0a0e,				0x1c141c, 
 	0x382838,				0x705070,				0xe0a0e0,				0xc040c0,
@@ -44,8 +44,8 @@ constexpr std::array<Bitboard, 64> KING_ATTACKS
 };
 
 // masks, bishop attacks considering no blockers
-constexpr std::array<Bitboard, 64> BISHOP_MASKS
-{
+constexpr std::array<Bitboard, 64> BISHOP_MASKS {
+
 	0x40201008040200ULL,	0x402010080400ULL,		0x4020100a00ULL,		0x40221400ULL,
 	0x2442800ULL,			0x204085000ULL,			0x20408102000ULL,		0x2040810204000ULL,
 	0x20100804020000ULL,	0x40201008040000ULL,	0x4020100a0000ULL,		0x4022140000ULL,
@@ -65,9 +65,9 @@ constexpr std::array<Bitboard, 64> BISHOP_MASKS
 };
 
 // masks, rook attacks considering no blockers
-constexpr std::array<Bitboard, 64> ROOK_MASKS
-{
-	0x101010101017eULL,		0x202020202027cULL,		0x404040404047aULL,		0x8080808080876ULL, 
+constexpr std::array<Bitboard, 64> ROOK_MASKS {
+	
+	0x101010101017eULL,		0x202020202027cULL,		0x404040404047aULL,		0x8080808080876ULL,
 	0x1010101010106eULL,	0x2020202020205eULL,	0x4040404040403eULL,	0x8080808080807eULL,
 	0x1010101017e00ULL,		0x2020202027c00ULL,		0x4040404047a00ULL,		0x8080808087600ULL, 
 	0x10101010106e00ULL,	0x20202020205e00ULL,	0x40404040403e00ULL,	0x80808080807e00ULL,
@@ -86,8 +86,8 @@ constexpr std::array<Bitboard, 64> ROOK_MASKS
 };
 
 // magic shifts for bishops and rooks
-constexpr std::array<int, 64> BISHOP_OFFSETS
-{
+constexpr std::array<int, 64> BISHOP_OFFSETS {
+	
 	5378 ,	4093,	4314,	6587,	6491,	6330,	5609,	22236,
 	6106,	5625,	16785,	16817,	6842,	7003,	4197,	7356,
 	4602,	4538,	29531,	45393,	12420,	15763,	5050,	4346,
@@ -98,8 +98,8 @@ constexpr std::array<int, 64> BISHOP_OFFSETS
 	4826,	7354,	4848,	15946,	14932,	16588,	6905,	16076
 };
 
-constexpr std::array<int, 64> ROOK_OFFSETS
-{
+constexpr std::array<int, 64> ROOK_OFFSETS {
+	
 	26304,	35520,	38592,	 8026,	22196,	80870,	76747,	30400,
 	11115,	18205,	53577,	62724,	34282,	29196,	23806,	49481,
 	 2410,	36498,	24478,	10074,	79315,	51779,	13586,	19323,
@@ -113,8 +113,8 @@ constexpr std::array<int, 64> ROOK_OFFSETS
 // magic numbers for bishops and rooks
 // Thanks to Volker Annuss for magic numbers: https://www.talkchess.com/forum3/viewtopic.php?p=727500#p727500
 
-constexpr std::array<Bitboard, 64> BISHOP_MAGICS
-{
+constexpr std::array<Bitboard, 64> BISHOP_MAGICS {
+	
 	0x007fbfbfbfbfbfffu, 0x0000a060401007fcu, 0x0001004008020000u, 0x0000806004000000u,
 	0x0000100400000000u, 0x000021c100b20000u, 0x0000040041008000u, 0x00000fb0203fff80u,
 	0x0000040100401004u, 0x0000020080200802u, 0x0000004010202000u, 0x0000008060040000u, 
@@ -133,8 +133,8 @@ constexpr std::array<Bitboard, 64> BISHOP_MAGICS
 	0x0000000001002020u, 0x0000000401002008u, 0x0000004040404040u, 0x007fff9fdf7ff813u,
 };
 
-constexpr std::array<Bitboard, 64> ROOK_MAGICS
-{
+constexpr std::array<Bitboard, 64> ROOK_MAGICS {
+	
 	0x00280077ffebfffeu, 0x2004010201097fffu, 0x0010020010053fffu, 0x0040040008004002u,
 	0x7fd00441ffffd003u, 0x4020008887dffffeu, 0x004000888847ffffu, 0x006800fbff75fffdu,
 	0x000028010113ffffu, 0x0020040201fcffffu, 0x007fe80042ffffe8u, 0x00001800217fffe8u,
@@ -151,13 +151,12 @@ constexpr std::array<Bitboard, 64> ROOK_MAGICS
 	0x000ffff810280028u, 0x0007ffd7f7feffd8u, 0x0003fffc0c480048u, 0x0001ffffafd7ffd8u,
 	0x00ffffe4ffdfa3bau, 0x007fffef7ff3d3dau, 0x003fffbfdfeff7fau, 0x001fffeff7fbfc22u,
 	0x0000020408001001u, 0x0007fffeffff77fdu, 0x0003ffffbf7dfeecu, 0x0001ffff9dffa333u,	
-	};
+};
 
-constexpr Bitboard RAYS[64][64]
-{
-	{
+constexpr std::array<std::array<Bitboard, 64> ,64> RAYS {
+	{{
 		0, 0, 2, 6, 14, 30, 62, 126, 0, 0, 0, 0, 0, 0, 0, 0, 256, 0, 512, 0, 0, 0, 0, 0, 65792, 0, 0, 262656, 0, 0, 0, 0,
-		16843008, 0, 0, 0, 134480384, 0, 0, 0, 4311810304, 0, 0, 0, 0, 68853957120, 0, 0, 1103823438080, 0, 0, 0, 0, 0, 35253226045952, 0, 282578800148736, 0, 0, 0, 0, 0, 0, 18049651735527936,
+		16843008, 0, 0, 0, 134480384, 0, 0, 0, 4311810304, 0, 0, 0, 0, 68853957120, 0, 0, 1103823438080, 0, 0, 0, 0, 0, 35253226045952, 0, 282578800148736, 0, 0, 0, 0, 0, 0, 18049651735527936
 	},
 	{
 	0,0,0,4,12,28,60,124,0,0,0,0,0,0,0,0,0,512,0,1024,0,0,0,0,0,131584,0,0,525312,0,0,0,
@@ -410,7 +409,7 @@ constexpr Bitboard RAYS[64][64]
 	{
 	18049651735527936,0,0,0,0,0,0,36170086419038208,0,18049651735527424,0,0,0,0,0,36170086419005440,0,0,18049651735265280,0,0,0,0,36170086410616832,0,0,0,18049651601047552,0,0,0,36170084263133184,
 	0,0,0,0,18049582881570816,0,0,36169534507319296,0,0,0,0,0,18014398509481984,0,36028797018963968,0,0,0,0,0,0,0,0,9079256848778919936,8935141660703064064,8646911284551352320,8070450532247928832,6917529027641081856,4611686018427387904,0,0,
-	}
+	}}
 };
 
 

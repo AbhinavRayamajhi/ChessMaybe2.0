@@ -6,8 +6,7 @@
 
 namespace Engine
 {
-	enum PieceValue
-	{
+	enum PieceValue {
 		PawnValue = 100,
 		KnightValue = 350,
 		BishopValue = 350,
@@ -16,18 +15,18 @@ namespace Engine
 		KingValue = 2147483647
 	};
 
-	inline int evaluate(Position p)
-	{
-		int numWhitePawns	{ popCount(p.board.pieces[WhitePawn]) },
-			numWhiteKnights	{ popCount(p.board.pieces[WhiteKnight]) }, 
-			numWhiteBishops	{ popCount(p.board.pieces[WhiteBishop]) }, 
-			numWhiteRooks	{ popCount(p.board.pieces[WhiteRook]) }, 
-			numWhiteQueens	{ popCount(p.board.pieces[WhiteQueen]) },
-			numBlackPawns	{ popCount(p.board.pieces[BlackPawn]) }, 
-			numBlackKnights	{ popCount(p.board.pieces[BlackKnight]) }, 
-			numBlackBishops	{ popCount(p.board.pieces[BlackBishop]) }, 
-			numBlackRooks	{ popCount(p.board.pieces[BlackRook]) }, 
-			numBlackQueens	{ popCount(p.board.pieces[BlackQueen]) };
+	inline int evaluate(Board& board) {
+		
+		int numWhitePawns   { popCount(board.pieces[WHITE][PAWN]) },
+			numWhiteKnights	{ popCount(board.pieces[WHITE][KNIGHT]) }, 
+			numWhiteBishops	{ popCount(board.pieces[WHITE][BISHOP]) }, 
+			numWhiteRooks	{ popCount(board.pieces[WHITE][ROOK]) }, 
+			numWhiteQueens	{ popCount(board.pieces[WHITE][QUEEN]) },
+			numBlackPawns	{ popCount(board.pieces[BLACK][PAWN]) }, 
+			numBlackKnights	{ popCount(board.pieces[BLACK][KNIGHT]) }, 
+			numBlackBishops	{ popCount(board.pieces[BLACK][BISHOP]) }, 
+			numBlackRooks	{ popCount(board.pieces[BLACK][ROOK]) }, 
+			numBlackQueens	{ popCount(board.pieces[BLACK][QUEEN]) };
 
 
 		int whiteScore = numWhitePawns * PawnValue + numWhiteKnights * KnightValue + numWhiteBishops * BishopValue
@@ -35,43 +34,43 @@ namespace Engine
 		int blackScore = numBlackPawns * PawnValue + numBlackKnights * KnightValue + numBlackBishops * BishopValue
 			+ numBlackRooks * RookValue + numBlackQueens * QueenValue;
 
-		if (p.board.pieces[WhitePawn] & 0x0000001818000000)
+		if (board.pieces[WHITE][PAWN] & 0x0000001818000000)
 			whiteScore += 20;
-		if (getBit(p.board.pieces[WhitePawn], A2))
+		if (getBit(board.pieces[WHITE][PAWN], A2))
 			whiteScore += 5;
-		if (getBit(p.board.pieces[WhitePawn], B2))
+		if (getBit(board.pieces[WHITE][PAWN], B2))
 			whiteScore += 5;
-		if (getBit(p.board.pieces[WhitePawn], C2))
+		if (getBit(board.pieces[WHITE][PAWN], C2))
 			whiteScore += 5;
-		if (getBit(p.board.pieces[WhitePawn], F2))
+		if (getBit(board.pieces[WHITE][PAWN], F2))
 			whiteScore += 5;
-		if (getBit(p.board.pieces[WhitePawn], G2))
+		if (getBit(board.pieces[WHITE][PAWN], G2))
 			whiteScore += 5;
-		if (getBit(p.board.pieces[WhitePawn], H2))
+		if (getBit(board.pieces[WHITE][PAWN], H2))
 			whiteScore += 5;
 
-		if (p.board.pieces[BlackPawn] & 0x0000001818000000)
+		if (board.pieces[BLACK][PAWN] & 0x0000001818000000)
 			blackScore += 20;
-		if (getBit(p.board.pieces[BlackPawn], A7))
+		if (getBit(board.pieces[BLACK][PAWN], A7))
 			blackScore += 5;
-		if (getBit(p.board.pieces[BlackPawn], B7))
+		if (getBit(board.pieces[BLACK][PAWN], B7))
 			blackScore += 5;
-		if (getBit(p.board.pieces[BlackPawn], C7))
+		if (getBit(board.pieces[BLACK][PAWN], C7))
 			blackScore += 5;
-		if (getBit(p.board.pieces[BlackPawn], F7))
+		if (getBit(board.pieces[BLACK][PAWN], F7))
 			blackScore += 5;
-		if (getBit(p.board.pieces[BlackPawn], G7))
+		if (getBit(board.pieces[BLACK][PAWN], G7))
 			blackScore += 5;
-		if (getBit(p.board.pieces[BlackPawn], H7))
+		if (getBit(board.pieces[BLACK][PAWN], H7))
 			blackScore += 5;
 
 		if (whiteScore > 2500)
 		{
-			if (getBit(p.board.pieces[WhiteQueen], D1)) whiteScore += 50;
+			if (getBit(board.pieces[WHITE][QUEEN], D1)) whiteScore += 50;
 		}
 		if (blackScore > 2500)
 		{
-			if (getBit(p.board.pieces[BlackQueen], D8)) blackScore += 50;
+			if (getBit(board.pieces[BLACK][QUEEN], D8)) blackScore += 50;
 		}
 
 		return whiteScore - blackScore;

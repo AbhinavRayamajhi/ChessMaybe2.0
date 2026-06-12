@@ -7,64 +7,82 @@
 #include <vector>
 
 #define Bitboard uint64_t
+#define Piece uint8_t
+#define Square uint8_t
+#define CastlingRight uint8_t
+#define MoveType uint8_t
+#define Rank uint8_t
+#define File uint8_t
 
-// for occupancy bitboards and true /false representation
-enum Color
-{
-	Black = 0, White, Both 
+// for side to move and occupancy bitboards 
+enum Color : uint8_t {
+	
+	BLACK, WHITE, BOTH
 };
 
 // for piece in move
-enum PieceType
-{
-	None = 0, Pawn, Knight, Bishop, Rook, Queen, King
-};
+enum Pieces : uint8_t {
 
-// for bitboard array
-enum Piece
-{
-	BlackPawn = 0, BlackKnight, BlackBishop, BlackRook, BlackQueen, BlackKing,
-	WhitePawn = 6, WhiteKnight, WhiteBishop, WhiteRook, WhiteQueen, WhiteKing
+	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
+	PIECE_COUNT,
+	NO_PIECE = PIECE_COUNT
 };
 
 // little endian rank-file Mapping
-enum Squares
-{
-	A1 = 0, B1, C1, D1, E1, F1, G1, H1,
-	    A2, B2, C2, D2, E2, F2, G2, H2,
-	    A3, B3, C3, D3, E3, F3, G3, H3,
-	    A4, B4, C4, D4, E4, F4, G4, H4,
-	    A5, B5, C5, D5, E5, F5, G5, H5,
-	    A6, B6, C6, D6, E6, F6, G6, H6,
-	    A7, B7, C7, D7, E7, F7, G7, H7,
-	    A8, B8, C8, D8, E8, F8, G8, H8
+enum Squares : uint8_t {
+
+	A1, B1, C1, D1, E1, F1, G1, H1,
+	A2, B2, C2, D2, E2, F2, G2, H2,
+	A3, B3, C3, D3, E3, F3, G3, H3,
+	A4, B4, C4, D4, E4, F4, G4, H4,
+	A5, B5, C5, D5, E5, F5, G5, H5,
+	A6, B6, C6, D6, E6, F6, G6, H6,
+	A7, B7, C7, D7, E7, F7, G7, H7,
+	A8, B8, C8, D8, E8, F8, G8, H8,
+	SQ_COUNT, SQ_NONE = SQ_COUNT
 };
 
 // for castling array
-enum CastlingRights
-{
-	WhiteKingSide  = 0,
-	WhiteQueenSide,
-	BlackKingSide,
-	BlackQueenSide
+enum CastlingRights : uint8_t {
+
+	NO_CASTLING,
+
+	WHITE_OO,
+	WHITE_OOO = WHITE_OO << 1,
+	BLACK_OO  = WHITE_OO << 2,
+	BLACK_OOO = WHITE_OO << 3,
+
+	WHITE_CASTLE = WHITE_OO | WHITE_OOO,
+	BLACK_CASTLE = BLACK_OO | BLACK_OOO
 };
 
-// bishop and rook
-enum Directions
-{
-	North = 8, South = -8, East = 1, West = -1,
-	NorthEast = 9, NorthWest = 7, SouthEast = -7, SouthWest = -9
+// bishop and rook directions
+enum Direction : uint8_t {
+
+	NORTH, SOUTH, EAST, WEST,
+	NORTH_EAST, NORTH_WEST, SOUTH_EAST, SOUTH_WEST
+};
+
+enum MoveTypes : uint8_t{
+	NORMAL,
+	ENPASSANT,
+	CASTLING,
+	PROMOTION
 };
 
 // int to piece string array for printing promotions for move
-inline const std::array<std::string, 8> intToPieceString
-{ "", "P", "N", "B", "R", "Q", "K", "F"
-};
+inline const std::array<std::string, 8> intToPieceString { "", "P", "N", "B", "R", "Q", "K", "F"};
 
 // char to int rank mapping
-inline const std::map<char, int> fileToInt
-{
-	{'a', 0}, {'b', 1}, {'c', 2}, {'d', 3}, {'e', 4}, {'f', 5}, { 'g', 6 }, {'h', 7}
+inline const std::map<char, File> fileToInt {
+	{'a', 0},
+	{'b', 1},
+	{'c', 2},
+	{'d', 3},
+	{'e', 4},
+	{'f', 5},
+	{'g', 6},
+	{'h', 7}
 };
 
 // board file definitions

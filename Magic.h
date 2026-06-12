@@ -7,8 +7,8 @@
 
 namespace Magic
 {
-	Bitboard bishopAttackForBlocker(int sq, Bitboard blockers);
-	Bitboard rookAttackForBlocker(int sq, Bitboard blockers);
+	Bitboard bishopAttackForBlocker(Square sq, Bitboard blockers);
+	Bitboard rookAttackForBlocker(Square sq, Bitboard blockers);
 
 	void computeSliderAttack();
 }

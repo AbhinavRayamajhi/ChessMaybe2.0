@@ -9,10 +9,8 @@
 #include "Helpers.h"
 #include "Move.h"
 #include "Position.h"
-#include "State.h"
 
-namespace MoveGen
-{
+namespace MoveGen {
 	Bitboard isKingInCheck(const Board& board, bool sideToMove);
 
 	// bishop and rook attack arrays
