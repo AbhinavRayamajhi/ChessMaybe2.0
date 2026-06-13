@@ -10,13 +10,14 @@
 #include "Move.h"
 #include "Position.h"
 
-namespace MoveGen {
-	Bitboard isKingInCheck(const Board& board, bool sideToMove);
+namespace Engine {
+
+	Bitboard isKingInCheck(const Board& board);
 
 	// bishop and rook attack arrays
 	extern std::array<Bitboard, 88772> BISHOP_ATTACKS;
 	extern std::array<Bitboard, 88772> ROOK_ATTACKS;
 	extern std::array<std::array<Bitboard, 64>, 64> RAY_MASKS;
 
-	int* generateLegalMoves(const Board& board, int* moveList, const State& state);
+	Move* generateLegalMoves(const Board& board, Move* moveList);
 }

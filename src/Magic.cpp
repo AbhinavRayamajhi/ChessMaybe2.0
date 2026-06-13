@@ -43,8 +43,7 @@ namespace Engine {
 		}
 
 		ray = bitboardShift(cur, SOUTH_EAST);
-		while (ray != 0ULL)
-		{
+		while (ray != 0ULL) {
 
 			attacks |= ray;
 			if(ray & blockers) {
@@ -138,14 +137,14 @@ namespace Engine {
 
 				Bitboard blockers = generateBlockers(i, BISHOP_MASKS[sq]);
 				Bitboard index = ((blockers * BISHOP_MAGICS[sq]) >> 55) + BISHOP_OFFSETS[sq];
-				MoveGen::BISHOP_ATTACKS[index] = bishopAttackForBlocker(sq, blockers);
+				BISHOP_ATTACKS[index] = bishopAttackForBlocker(sq, blockers);
 			}
 
 			for (int i = 0; i < rookEntries; ++i) {
 
 				Bitboard blockers = generateBlockers(i, ROOK_MASKS[sq]);
 				Bitboard index = ((blockers * ROOK_MAGICS[sq]) >> 52) + ROOK_OFFSETS[sq];
-				MoveGen::ROOK_ATTACKS[index] = rookAttackForBlocker(sq, blockers);
+				ROOK_ATTACKS[index] = rookAttackForBlocker(sq, blockers);
 			}
 		}
 	}

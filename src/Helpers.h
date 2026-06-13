@@ -19,7 +19,7 @@ inline void setBit(Bitboard& b, Square sq) {
 	b |= (1ULL << sq);
 }
 
-inline bool flipBit(Bitboard& b, Square sq) {
+inline void flipBit(Bitboard& b, Square sq) {
 
 	b ^= (1ULL << sq);
 }

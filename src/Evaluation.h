@@ -4,8 +4,8 @@
 #include "MoveGen.h"
 #include "Position.h"
 
-namespace Engine
-{
+namespace Engine {
+	
 	enum PieceValue {
 		PawnValue = 100,
 		KnightValue = 350,

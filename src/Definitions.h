@@ -25,7 +25,8 @@ enum Pieces : uint8_t {
 
 	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
 	PIECE_COUNT,
-	NO_PIECE = PIECE_COUNT
+	NO_PIECE = PIECE_COUNT,
+	NO_PROMOTION = PAWN
 };
 
 // little endian rank-file Mapping

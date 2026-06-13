@@ -11,10 +11,10 @@ struct Board {
 	std::array<std::array<Bitboard, PIECE_COUNT>, 2> pieces{ 0 };
 
 	// bitboards for occupancy of each type and both colors
-	std::array<Bitboard, BOTH> occupancy{ 0 };
+	std::array<Bitboard, 3> occupancy{ 0 };
 
 	Color sideToMove = WHITE;
-	uint8_t castlingRights = NO_CASTLING;
+	CastlingRight castlingRights = NO_CASTLING;
 	Square enPassantSq = SQ_NONE;
 
 	int halfMoveClock = 0;

@@ -41,8 +41,6 @@ inline void printMove(Move move) {
 	if (getMoveType(move) == PROMOTION) {
 		std::cout << intToPieceString[getPromotionPiece(move)];
 	}
-
-	std::cout << "\n\n";
 }
 
 inline void printMoveList(Move moveList[]) {
