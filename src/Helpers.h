@@ -19,11 +19,6 @@ inline void setBit(Bitboard& b, Square sq) {
 	b |= (1ULL << sq);
 }
 
-inline void flipBit(Bitboard& b, Square sq) {
-
-	b ^= (1ULL << sq);
-}
-
 inline bool getBit(Bitboard b, Square sq) {
 
 	return b & (1ULL << sq);

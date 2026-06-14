@@ -4,7 +4,6 @@ void makeMove(int move, Board& board, History& history) {
 
 	Square start = getStartSq(move);
 	Square target = getTargetSq(move);
-	Piece promotionPiece = getPromotionPiece(move);
 	MoveType moveType = getMoveType(move);
 
 	int side = board.sideToMove == WHITE ? 1 : 0;
@@ -30,6 +29,20 @@ void makeMove(int move, Board& board, History& history) {
 		default: break;
 	}
 
+	// set castling right to false if anything moves from rook sq
+	switch (start)
+	{
+		case H1:
+			board.castlingRights &= ~WHITE_OO; break;
+		case A1:
+			board.castlingRights &= ~WHITE_OOO; break;
+		case H8:
+			board.castlingRights &= ~BLACK_OO; break;
+		case A8:
+			board.castlingRights &= ~BLACK_OOO; break;
+		default: break;
+	}
+
 	for (Piece piece = PAWN; piece < PIECE_COUNT; ++piece) {
 
 		if (getBit(board.pieces[side][piece], start)) {
@@ -37,7 +50,7 @@ void makeMove(int move, Board& board, History& history) {
 			history.moved = piece;
 
 			// move piece
-			flipBit(board.pieces[board.sideToMove][piece], (1ULL << start) | (1ULL << target));
+			board.pieces[board.sideToMove][piece] ^= (1ULL << start) | (1ULL << target);
 
 			if (piece == PAWN) {
 				// set en passant sq if double push
@@ -50,8 +63,8 @@ void makeMove(int move, Board& board, History& history) {
 			// king move cancels all castling
 			if (piece == KING) {
 
-				if (side == WHITE) board.castlingRights &= ~BLACK_CASTLE;
-				else board.castlingRights &= ~WHITE_CASTLE;
+				if (side == WHITE) board.castlingRights &= ~WHITE_CASTLE;
+				else board.castlingRights &= ~BLACK_CASTLE;
 			}
 		}
 		if (getBit(board.pieces[!side][piece], target)) {
@@ -60,13 +73,13 @@ void makeMove(int move, Board& board, History& history) {
 			// reset half move clock since capture
 			board.halfMoveClock = 0;
 			// delete captured piece
-			flipBit(board.pieces[!side][piece], 1ULL << target);
+			board.pieces[!side][piece] ^= 1ULL << target;
 		}		
 	}
 
 	// if enPassant capture remove the captured piece
 	if (moveType == ENPASSANT) {
-		flipBit(board.pieces[!side][PAWN], 1ULL << (start + (side == WHITE? 8 : -8)));
+		board.pieces[!side][PAWN] ^= 1ULL << (target + (side == WHITE? -8 : 8));
         history.captured = PAWN;
 	}
 
@@ -95,7 +108,7 @@ void makeMove(int move, Board& board, History& history) {
             rookFrom = A8;
             rookTo = D8;
         }
-        flipBit(board.pieces[side][ROOK], (1ULL << rookFrom) | (1ULL << rookTo));
+        board.pieces[side][ROOK] ^= (1ULL << rookFrom) | (1ULL << rookTo);
 	}
 
 	updateOccupancy(board);
@@ -117,10 +130,10 @@ void unmakeMove(Board& board, History& history)
     if (history.captured != NO_PIECE) {
 
         if (moveType != ENPASSANT) {
-            flipBit(board.pieces[side][history.captured], 1ULL << target);
+            board.pieces[side][history.captured] ^= 1ULL << target;
         }
         else {
-            flipBit(board.pieces[side][PAWN], 1ULL << (start + (side == WHITE ? -8 : 8)));
+            board.pieces[side][PAWN] ^= 1ULL << (target + (side == WHITE ? 8 : -8));
         }
     }
 
@@ -149,11 +162,11 @@ void unmakeMove(Board& board, History& history)
             rookTo = D8;
         }
 
-        flipBit(board.pieces[!side][ROOK], (1ULL << rookFrom) | (1ULL << rookTo));
-        flipBit(board.pieces[!side][KING], (1ULL << start) | (1ULL << target));
+        board.pieces[!side][ROOK] ^= (1ULL << rookFrom) | (1ULL << rookTo);
+        board.pieces[!side][KING] ^= (1ULL << start) | (1ULL << target);
     }
     else {
-        flipBit(board.pieces[!side][history.moved], (1ULL << start) | (1ULL << target));
+        board.pieces[!side][history.moved] ^= (1ULL << start) | (1ULL << target);
 	}
 	
 	updateOccupancy(board);

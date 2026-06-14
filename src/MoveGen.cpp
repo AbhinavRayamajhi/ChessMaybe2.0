@@ -173,7 +173,6 @@ namespace Engine {
 
 		Bitboard king = sideToMove == WHITE ? board.pieces[WHITE][KING] : board.pieces[BLACK][KING];
 		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemy = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		int start = getLSB(king);
 		Bitboard attacks = KING_ATTACKS[start] & ~friends;
@@ -221,7 +220,6 @@ namespace Engine {
 
 		Bitboard bishops = sideToMove == WHITE? board.pieces[WHITE][BISHOP] : board.pieces[BLACK][BISHOP];
 		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemy = sideToMove == WHITE? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		while (bishops) {
 			
@@ -231,7 +229,7 @@ namespace Engine {
 			while (attacks) {
 
 				int target = popLSB(attacks);
-				*moveList = createMove(start, target, NO_PROMOTION, NORMAL);
+				*moveList++ = createMove(start, target, NO_PROMOTION, NORMAL);
 			}
 		}
 		return moveList;
@@ -253,7 +251,6 @@ namespace Engine {
 		
 		Bitboard rooks = sideToMove == WHITE ? board.pieces[WHITE][ROOK] : board.pieces[BLACK][ROOK];
 		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemy = sideToMove == WHITE? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		while (rooks) {
 			
@@ -263,7 +260,7 @@ namespace Engine {
 			while (attacks) {
 
 				int target = popLSB(attacks);
-				*moveList = createMove(start, target, NO_PROMOTION, NORMAL);
+				*moveList++ = createMove(start, target, NO_PROMOTION, NORMAL);
 			}
 		}
 		return moveList;
@@ -281,7 +278,6 @@ namespace Engine {
 
 		Bitboard queens = sideToMove == WHITE ? board.pieces[WHITE][QUEEN] : board.pieces[BLACK][QUEEN];
 		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemy = sideToMove == WHITE? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		while (queens) {
 			
@@ -291,7 +287,7 @@ namespace Engine {
 			while (attacks) {
 
 				int target = popLSB(attacks);
-				*moveList = createMove(start, target, NO_PROMOTION, NORMAL);
+				*moveList++ = createMove(start, target, NO_PROMOTION, NORMAL);
 			}
 		}
 		return moveList;
@@ -542,7 +538,6 @@ namespace Engine {
 				moveList = generateWhiteCastles<WHITE_OOO>(moveList);
 			}
 
-			
 			for (Move* m = start; m != moveList; ++m) {
 
 				Move move = *m;
@@ -567,12 +562,11 @@ namespace Engine {
 			}
 
 			if (board.castlingRights & BLACK_OO) {
-				moveList = generateWhiteCastles<BLACK_OO>(moveList);
+				moveList = generateBlackCastles<BLACK_OO>(moveList);
 			}
 			if (board.castlingRights & BLACK_OOO) {
-				moveList = generateWhiteCastles<BLACK_OOO>(moveList);
+				moveList = generateBlackCastles<BLACK_OOO>(moveList);
 			}
-
 
 			for (Move* m = start; m != moveList; ++m) {
 

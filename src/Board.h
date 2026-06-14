@@ -28,8 +28,8 @@ inline void updateOccupancy(Board& board) {
 	board.occupancy[BLACK] = 0ULL;
 
 	for (Piece p = PAWN; p < PIECE_COUNT; ++p) {
-		board.occupancy[WHITE] = board.pieces[WHITE][p];
-		board.occupancy[BLACK] = board.pieces[BLACK][p];
+		board.occupancy[WHITE] |= board.pieces[WHITE][p];
+		board.occupancy[BLACK] |= board.pieces[BLACK][p];
 	}
 
 	board.occupancy[BOTH] = board.occupancy[WHITE] | board.occupancy[BLACK];
@@ -69,6 +69,7 @@ inline Board createBoard(std::string FEN) {
 		case 'Q': setBit(board.pieces[WHITE][QUEEN], sq); file++; break;
 		case 'K': setBit(board.pieces[WHITE][KING], sq); file++; break;
 
+		case '8': break;
 		case '7': file += 7; break;
 		case '6': file += 6; break;
 		case '5': file += 5; break;
@@ -76,8 +77,7 @@ inline Board createBoard(std::string FEN) {
 		case '3': file += 3; break;
 		case '2': file += 2; break;
 		case '1': file++; break;
-
-		case '8': [[fallthrough]]
+		
 		case '/': file = 0; rank--; break;
 		}
 	}

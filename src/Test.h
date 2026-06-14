@@ -7,7 +7,7 @@
 
 namespace Engine {
 
-	inline uint64_t perfTest(Board& board, int depth, int rootDepth = -1, int debug = 0) {
+	inline uint64_t perfTest(Board& board, int depth, int rootDepth = -1, bool debug = false) {
 
 		if (depth == 0) return 1ULL;
 
@@ -21,7 +21,7 @@ namespace Engine {
 			History history;
 			// make move calculate deeper and unmake
 			makeMove(moveList[i], board, history);
-			uint64_t node = perfTest(board, depth - 1, rootDepth);
+			uint64_t node = perfTest(board, depth - 1, rootDepth, debug);
 			unmakeMove(board, history);
 
 			// print out nodes after each move from the start position
@@ -29,7 +29,7 @@ namespace Engine {
 				printMove(moveList[i]);
 				std::cout << " : " << node << '\n';
 			}
-			if (debug && rootDepth - 1 == depth) {
+			if (debug && ((rootDepth - 1) == depth)) {
 				std::cout << "\t";
 				printMove(moveList[i]);
 				std::cout << " : " << node << '\n';
