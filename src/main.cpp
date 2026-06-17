@@ -23,9 +23,10 @@ int main()
 	// search
 	int depth = 3;
 	Board board = createBoard(FEN);
-	int bestMove = Engine::getBestMove(current, depth);
+	int bestMove = Engine::getBestMove(board, depth);
 	std::cout << "\nBest Move: ";
 	printMove(bestMove);
+	std::cout << std::endl;
 #endif
 
 #if 1

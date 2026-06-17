@@ -27,7 +27,7 @@ inline void updateOccupancy(Board& board) {
 	board.occupancy[WHITE] = 0ULL;
 	board.occupancy[BLACK] = 0ULL;
 
-	for (Piece p = PAWN; p < PIECE_COUNT; ++p) {
+	for (Piece p = PAWN; p != PIECE_NONE; ++p) {
 		board.occupancy[WHITE] |= board.pieces[WHITE][p];
 		board.occupancy[BLACK] |= board.pieces[BLACK][p];
 	}
@@ -178,12 +178,9 @@ inline void printBoard(const Board& board) {
 
 inline void removeSquareFromBoard(Board& board, Square sq) {
 
-	for (Piece p = PAWN; p < PIECE_COUNT; ++p) {
+	for (Piece p = PAWN; p != PIECE_NONE; ++p) {
 		
 		resetBit(board.pieces[WHITE][p], sq);
 		resetBit(board.pieces[BLACK][p], sq);
 	}
 }
-
-
-

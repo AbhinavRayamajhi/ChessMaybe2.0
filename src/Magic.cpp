@@ -128,7 +128,7 @@ namespace Engine {
 
 	void computeSliderAttack() {
 
-		for (Square sq = A1; sq < SQ_COUNT; ++sq) {
+		for (Square sq = A1; sq != SQ_NONE; ++sq) {
 			
 			int bishopEntries = 1 << 9;
 			int rookEntries = 1 << 12;

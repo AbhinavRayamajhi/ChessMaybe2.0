@@ -7,6 +7,7 @@
 #include <vector>
 
 #define Bitboard uint64_t
+#define Color bool
 #define Piece uint8_t
 #define Square uint8_t
 #define CastlingRight uint8_t
@@ -15,17 +16,16 @@
 #define File uint8_t
 
 // for side to move and occupancy bitboards 
-enum Color : uint8_t {
+enum Colors : uint8_t {
 	
 	BLACK, WHITE, BOTH
 };
 
-// for piece in move
+// for piece in bitboard and move(including promotions)
 enum Pieces : uint8_t {
 
 	PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING,
-	PIECE_COUNT,
-	NO_PIECE = PIECE_COUNT,
+	PIECE_NONE, PIECE_COUNT = PIECE_NONE,
 	NO_PROMOTION = PAWN
 };
 
@@ -40,7 +40,7 @@ enum Squares : uint8_t {
 	A6, B6, C6, D6, E6, F6, G6, H6,
 	A7, B7, C7, D7, E7, F7, G7, H7,
 	A8, B8, C8, D8, E8, F8, G8, H8,
-	SQ_COUNT, SQ_NONE = SQ_COUNT
+	SQ_NONE
 };
 
 // for castling array

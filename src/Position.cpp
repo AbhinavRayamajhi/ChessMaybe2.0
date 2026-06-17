@@ -127,7 +127,7 @@ void unmakeMove(Board& board, History& history)
     board.castlingRights = history.castlingRights;
     board.halfMoveClock = history.halfMoveClock;
 
-    if (history.captured != NO_PIECE) {
+    if (history.captured != PIECE_NONE) {
 
         if (moveType != ENPASSANT) {
             board.pieces[side][history.captured] ^= 1ULL << target;

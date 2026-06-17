@@ -5,8 +5,8 @@
 
 struct History {
 	Move move;
-	Piece moved = NO_PIECE;
-	Piece captured = NO_PIECE;
+	Piece moved = PIECE_NONE;
+	Piece captured = PIECE_NONE;
 	CastlingRight castlingRights = NO_CASTLING;
 	Square enPassantSq = SQ_NONE;
 	int halfMoveClock = 0;
