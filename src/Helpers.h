@@ -92,7 +92,7 @@ inline void printBitboard(Bitboard bb) {
 		std::cout << rank + 1 << "  ";
 		for (File file = 0; file < 8; ++file) {
 			
-			Square sq = rank * 8 + file;
+			Square sq = getSquareFromRF(rank, file);
 			std::cout << (((bb >> sq) & 1ULL) ? '1' : '0') << " ";
 		}
 		std::cout << "\n";
@@ -100,7 +100,7 @@ inline void printBitboard(Bitboard bb) {
 	std::cout << "\n   a b c d e f g h\n\n";
 }
 
-static inline Bitboard bitboardShift(Bitboard bb, Direction dir) {
+inline Bitboard bitboardShift(Bitboard bb, Direction dir) {
 
     switch(dir) {
         case NORTH            : return bb << 8; break;

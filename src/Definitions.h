@@ -6,19 +6,21 @@
 #include <string>
 #include <vector>
 
-#define Bitboard uint64_t
-#define Color bool
-#define Piece uint8_t
-#define Square uint8_t
-#define CastlingRight uint8_t
-#define MoveType uint8_t
-#define Rank uint8_t
-#define File uint8_t
+using Bitboard 		= uint64_t;
+using Key         	= uint64_t;
+using Color 		= bool;
+using Piece         = uint8_t;
+using Square        = uint8_t;
+using CastlingRight = uint8_t;
+using MoveType      = uint8_t;
+using Rank          = uint8_t;
+using File 			= uint8_t;
 
 // for side to move and occupancy bitboards 
 enum Colors : uint8_t {
 	
-	BLACK, WHITE, BOTH
+	BLACK, WHITE,
+	BOTH, OCC_COUNT
 };
 
 // for piece in bitboard and move(including promotions)
@@ -40,7 +42,7 @@ enum Squares : uint8_t {
 	A6, B6, C6, D6, E6, F6, G6, H6,
 	A7, B7, C7, D7, E7, F7, G7, H7,
 	A8, B8, C8, D8, E8, F8, G8, H8,
-	SQ_NONE
+	SQ_NONE, SQ_COUNT = SQ_NONE
 };
 
 // for castling array

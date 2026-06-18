@@ -434,8 +434,8 @@ namespace Engine {
 		if (getStartSq(move) == kSq) {
 			// We need to check a board without king to prevent x-ray moves from sneaking in
 			Board b = board;
-			removeSquareFromBoard(b, kSq);
-			updateOccupancy(b);
+			b.removePiece<sideToMove>(KING, kSq);
+			b.updateCombinedOccupancy();
 
 			if (squareAttackers<sideToMove>(b, getTargetSq(move))) {
 				return false;
@@ -475,18 +475,9 @@ namespace Engine {
 
 			Board b = board;
 
-			if (sideToMove == WHITE) {
-				resetBit(b.pieces[WHITE][PAWN], getStartSq(move));
-				setBit(b.pieces[WHITE][PAWN], board.enPassantSq);
-				resetBit(b.pieces[BLACK][PAWN], board.enPassantSq - 8);
-			}
-			else {
-				resetBit(b.pieces[BLACK][PAWN], getStartSq(move));
-				setBit(b.pieces[BLACK][PAWN], board.enPassantSq);
-				resetBit(b.pieces[WHITE][PAWN], board.enPassantSq + 8);
-			}
-
-			updateOccupancy(b);
+			b.movePiece<sideToMove>(PAWN, getStartSq(move), board.enPassantSq);
+			b.removePiece<!sideToMove>(PAWN, sideToMove == WHITE ? board.enPassantSq - 8 : board.enPassantSq + 8);
+			b.updateCombinedOccupancy();
 
 			// if king is attacked after en-passant, the move is illegal else legal
 			if (squareAttackers<sideToMove>(b, kSq)) return false;

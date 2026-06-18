@@ -1,6 +1,6 @@
 # 1. Compiler and Flag Definitions
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -O2 -g
+CXXFLAGS = -Wall -std=c++17 -O3 -g -fsanitize=address
 
 # 2. Directory Paths
 SRC_DIR = src
@@ -28,7 +28,7 @@ create_dirs:
 $(TARGET): $(OBJS)
 	$(CXX) $(CXXFLAGS) -o $(TARGET) $(OBJS)
 
-# Compile each individual .c file into a .o file in build/obj/
+# Compile each individual .cpp file into a .o file in build/obj/
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 

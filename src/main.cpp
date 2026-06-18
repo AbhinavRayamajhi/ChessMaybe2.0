@@ -10,7 +10,7 @@
 
 int main()
 {
-	std::string FEN = "r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1";
+	std::string FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
 
 	Engine::computeSliderAttack();
 	auto start = std::chrono::steady_clock::now();
@@ -31,29 +31,28 @@ int main()
 
 #if 1
 	Engine::testSuite();
+	int nodes = 1494874546;
 #endif
 
 #if 0
-	int depth = 1;
-	Board board = createBoard(FEN);
+	int depth = 2;
+	Board board(FEN);
 	History history;
 
-	// Move move1 = createMove(A2, A3, NO_PROMOTION, NORMAL);
+	Move move1 = createMove(H7, H6, NO_PROMOTION, NORMAL);
 	// Move move2 = createMove(A6, A5, NO_PROMOTION, NORMAL);
 
-	// makeMove(move1, board, history);
+	makeMove(move1, board, history);
 	// makeMove(move2, board, history);
 
-	//printBoard(board);
-
-	std::cout << Engine::perfTest(board, depth, depth, false) << std::endl;
+	int nodes = Engine::perfTest(board, depth, depth);
 #endif
 
 	auto end = std::chrono::steady_clock::now();
 	auto duration = end - start;
 
-	int nodes = 1494874546;
-	std::cout << "Nodes: " << nodes << "\n";
+	
+	std::cout << "\nNodes: " << nodes << "\n";
 
 	double time = std::chrono::duration_cast<std::chrono::milliseconds>(duration).count() / 1000.0;
 	std::cout << "Time: " << time << " s\n";
