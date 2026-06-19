@@ -11,19 +11,15 @@
 
 int main()
 {
-	std::string FEN = "r3k2r/Pppp1ppp/1b3nbN/nPP5/4P3/B4N2/P2P2PP/3B1RK1 b kq - 0 3";
+	std::string FEN = "r3k2r/p1ppqpb1/Bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPB1PPP/R3K2R b KQkq - 0 1";
 
 	Engine::computeSliderAttack();
 	auto start = std::chrono::steady_clock::now();
 
 #if 0
-	one.play(6);
-#endif
-
-#if 1
 	// search
 	int depth = 6;
-	int nodes = 0;
+	uint64_t nodes = 0;
 
 	while (true) {
 		std::string input;
@@ -42,23 +38,39 @@ int main()
 	std::cout << std::endl;
 #endif
 
-#if 0
-	Engine::testSuite();
-	int nodes = 1494874546;
+#if 1
+	// search
+	int depth = 6;
+	bool debug = true;
+	uint64_t nodes = 0;
+
+	Board board(FEN);
+	int bestMove = Engine::getBestMove(board, depth, nodes, debug);
+	std::cout << "Best Move: ";
+	printMove(bestMove);
+	std::cout << std::endl;
+	
 #endif
 
 #if 0
-	int depth = 2;
+	Engine::testSuite();
+	uint64_t nodes = 1494874546;
+#endif
+
+#if 0
+	int depth = 6;
 	Board board(FEN);
 	History history;
 
-	Move move1 = createMove(H7, H6, NO_PROMOTION, NORMAL);
+	//Move move1 = createMove(H7, H6, NO_PROMOTION, NORMAL);
 	// Move move2 = createMove(A6, A5, NO_PROMOTION, NORMAL);
 
-	makeMove(move1, board, history);
+	//makeMove(move1, board, history);
 	// makeMove(move2, board, history);
 
-	int nodes = Engine::perfTest(board, depth, depth);
+	board.printBoard();
+
+	uint64_t nodes = Engine::perfTest(board, depth, depth);
 #endif
 
 	auto end = std::chrono::steady_clock::now();

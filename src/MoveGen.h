@@ -11,7 +11,7 @@
 #include "Position.h"
 
 namespace Engine {
-
+	
 	Bitboard isKingInCheck(const Board& board);
 
 	// bishop and rook attack arrays
@@ -19,5 +19,9 @@ namespace Engine {
 	extern std::array<Bitboard, 88772> ROOK_ATTACKS;
 	extern std::array<std::array<Bitboard, 64>, 64> RAY_MASKS;
 
-	Move* generateLegalMoves(const Board& board, Move* moveList);
+	template<bool ScoreMoves = true>
+	void generateLegalMoves(const Board& board, MoveList& moveList);
+
+	extern template void generateLegalMoves<true>(const Board& board, MoveList& moveList);
+	extern template void generateLegalMoves<false>(const Board& board, MoveList& moveList);
 }

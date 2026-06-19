@@ -112,6 +112,5 @@ inline constexpr Bitboard RANK_8 = 0xFF00000000000000;
 inline constexpr Bitboard FULL_BOARD =  0xFFFFFFFFFFFFFFFF;
 inline constexpr Bitboard EMPTY_BOARD = 0x0000000000000000;
 
-
-
+inline const std::array<int, PIECE_COUNT> materialVal{ 100, 350, 330, 525, 1000, INT32_MAX};
 

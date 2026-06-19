@@ -6,7 +6,6 @@
 
 namespace Engine {
 	
-	const std::array<int, PIECE_COUNT> materialVal { 100, 350, 330, 525, 1000, INT32_MAX };
 	const int earlypSTable[PIECE_COUNT][SQ_COUNT] {
 		{
 			0,   0,   0,   0,   0,   0,  0,   0,

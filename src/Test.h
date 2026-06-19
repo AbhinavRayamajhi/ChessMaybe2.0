@@ -9,30 +9,32 @@ namespace Engine {
 
 	inline uint64_t perfTest(Board& board, int depth, int rootDepth = -1, bool debug = false) {
 
-		if (depth == 0) return 1ULL;
+		// if (depth == 0) return 1ULL;
 
 		uint64_t nodes = 0;
-		Move moveList[256]{ 0 };
+		MoveList moveList;
 
-		generateLegalMoves(board, moveList);
+		generateLegalMoves<false>(board, moveList);
 
-		for (int i = 0; moveList[i] != 0; ++i) {
+		if (depth == 1) return moveList.end;
+
+		for (int i = 0; i < moveList.end; ++i) {
 
 			History history;
 			// make move calculate deeper and unmake
-			makeMove(moveList[i], board, history);
+			makeMove(moveList.list[i], board, history);
 			uint64_t node = perfTest(board, depth - 1, rootDepth, debug);
 			unmakeMove(board, history);
 
 			// print out nodes after each move from the start position
 			if (rootDepth == depth) {
 				//board.printBoard();
-				printMove(moveList[i]);
+				printMove(moveList.list[i]);
 				std::cout << " : " << node << '\n';
 			}
 			if (debug && ((rootDepth - 1) == depth)) {
 				std::cout << "\t";
-				printMove(moveList[i]);
+				printMove(moveList.list[i]);
 				std::cout << " : " << node << '\n';
 			}
 			nodes += node;

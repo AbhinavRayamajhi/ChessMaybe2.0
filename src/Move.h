@@ -57,3 +57,27 @@ inline void printMoveList(Move moveList[]) {
 	}
 	std::cout << "\n\n";
 }
+
+struct MoveList {
+	std::array<Move, 256> list;
+	std::array<int, 256> score;
+	uint8_t end;
+
+	MoveList() :
+		list{},  score{}, end{ 0 } {
+	}
+
+	inline void addMove(Move m) {
+		list[end++] = m;
+	}
+
+	inline void removeMove(int index) {
+		score[index] = score[--end];
+		list[index] = list[end];
+	}
+
+	inline void swapMoveScore(int index, int bestIndex) {
+		std::swap(list[index], list[bestIndex]);
+    	std::swap(score[index], score[bestIndex]);
+	}
+};
