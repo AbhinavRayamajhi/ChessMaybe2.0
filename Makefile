@@ -1,6 +1,6 @@
 # 1. Compiler and Flag Definitions
 CXX = g++
-CXXFLAGS = -Wall -std=c++17 -O3 -g -fsanitize=address
+CXXFLAGS = -Wall -std=c++17 -O3 -g 
 
 # 2. Directory Paths
 SRC_DIR = src

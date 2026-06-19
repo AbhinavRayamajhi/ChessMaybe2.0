@@ -1,5 +1,6 @@
 
 #include <chrono>
+#include <string>
 #include <fstream>
 #include <iostream>
 
@@ -10,7 +11,7 @@
 
 int main()
 {
-	std::string FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+	std::string FEN = "r3k2r/Pppp1ppp/1b3nbN/nPP5/4P3/B4N2/P2P2PP/3B1RK1 b kq - 0 3";
 
 	Engine::computeSliderAttack();
 	auto start = std::chrono::steady_clock::now();
@@ -19,17 +20,29 @@ int main()
 	one.play(6);
 #endif
 
-#if 0
+#if 1
 	// search
-	int depth = 3;
-	Board board = createBoard(FEN);
-	int bestMove = Engine::getBestMove(board, depth);
-	std::cout << "\nBest Move: ";
-	printMove(bestMove);
+	int depth = 6;
+	int nodes = 0;
+
+	while (true) {
+		std::string input;
+		std::cout << "\nEnter FEN(-1 to exit): ";
+		std::getline(std::cin, input);
+
+		if (input == "-1") break;
+
+		Board board(input);
+		int bestMove = Engine::getBestMove(board, depth, nodes);
+		std::cout << "Best Move: ";
+		printMove(bestMove);
+		std::cout << std::endl;
+	}
+
 	std::cout << std::endl;
 #endif
 
-#if 1
+#if 0
 	Engine::testSuite();
 	int nodes = 1494874546;
 #endif
