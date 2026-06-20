@@ -19,9 +19,11 @@ namespace Engine {
 	extern std::array<Bitboard, 88772> ROOK_ATTACKS;
 	extern std::array<std::array<Bitboard, 64>, 64> RAY_MASKS;
 
-	template<bool ScoreMoves = true>
+	template<bool ScoreMoves, bool captures>
 	void generateLegalMoves(const Board& board, MoveList& moveList);
 
-	extern template void generateLegalMoves<true>(const Board& board, MoveList& moveList);
-	extern template void generateLegalMoves<false>(const Board& board, MoveList& moveList);
+	extern template void generateLegalMoves<true, true>(const Board& board, MoveList& moveList);
+	extern template void generateLegalMoves<true, false>(const Board& board, MoveList& moveList);
+	extern template void generateLegalMoves<false, true>(const Board& board, MoveList& moveList);
+	extern template void generateLegalMoves<false, false>(const Board& board, MoveList& moveList);
 }

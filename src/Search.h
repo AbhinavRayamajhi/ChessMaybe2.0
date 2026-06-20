@@ -6,17 +6,72 @@
 #include "MoveGen.h"
 
 const int INF = 64000;
+const int QUIESCENCE_DEPTH = 4;
 
 namespace Engine {
-	
+
+	inline int quiescenceSearch(Board& board, int alpha, int beta, int depth) {
+
+		if (depth == 0) return evaluate(board);
+
+		MoveList moveList;
+
+		if (isKingInCheck(board)) {
+
+			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
+
+			if (moveList.end == 0) {
+
+				return -(INF + QUIESCENCE_DEPTH -depth);
+			}
+		}
+		else {
+
+			int standPat = evaluate(board);
+			if (standPat >= beta) return beta;
+			if (standPat > alpha) alpha = standPat;
+			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_TRUE>(board, moveList);
+		}
+
+		for (int i = 0; i < moveList.end; ++i) {
+
+			// find best move
+			int bestInd = i;
+			for (int j = i + 1; j < moveList.end; ++j) {
+
+				if (moveList.score[j] > moveList.score[bestInd]) {
+					bestInd = j;
+				}
+			}
+
+			moveList.swapMoveScore(i, bestInd);
+
+			History h;
+			makeMove(moveList.list[i], board, h);
+			int score = -quiescenceSearch(board, -beta, -alpha, depth - 1);
+			unmakeMove(board, h);
+
+			if (score >= beta) return beta;
+			if (score > alpha) alpha = score;
+		}
+
+		return alpha;
+	}
+
 	inline int search(Board& board, int depth, int alpha, int beta, uint64_t& nodes) {
 
 		if (depth == 0) {
-			return evaluate(board);
+			return quiescenceSearch(board, alpha, beta, QUIESCENCE_DEPTH);
 		}
 
+		// Mate distance pruning
+		alpha = std::max(alpha, -(INF + depth));   // can't be worse than getting mated right now
+		beta = std::min(beta, INF + depth);         // can't be better than mating right now
+
+		if (alpha >= beta) return alpha;            // window collapsed, no point searching further
+
 		MoveList moveList;
-		generateLegalMoves(board, moveList);
+		generateLegalMoves <SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
 
 		if (moveList.end == 0) {
 
@@ -62,12 +117,11 @@ namespace Engine {
 	inline int getBestMove(Board& board, int depth, uint64_t& nodes, bool debug) {
 
 		MoveList moveList;
-		generateLegalMoves(board, moveList);
+		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
 
 		int bestMove = moveList.list[0];
 		int bestScore = INT32_MIN + 1;
-		int alpha = -INF;
-		int beta = INF;
+		int beta = INT32_MAX;
 
 		for (int i = 0; i < moveList.end; ++i) {
 
@@ -84,7 +138,7 @@ namespace Engine {
 
 			History h;
 			makeMove(moveList.list[i], board, h);
-			int currentScore = -search(board, depth - 1, alpha, beta, nodes);
+			int currentScore = -search(board, depth - 1, -beta, -bestScore, nodes);
 			unmakeMove(board,  h);
 
 

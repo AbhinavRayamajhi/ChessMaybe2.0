@@ -57,7 +57,7 @@ namespace Engine {
 	}
 
 	// generate pseudo pawn pushes
-	template <Color sideToMove, Square ePSq>
+	template <Color sideToMove, Square ePSq, bool captures>
 	void generatePawnMoves(const Board& board, MoveList& moveList) {
 
 		Bitboard pawns = sideToMove == WHITE ? board.pieces[WHITE][PAWN] : board.pieces[BLACK][PAWN];
@@ -66,31 +66,34 @@ namespace Engine {
 
 		Square start, target;
 
-		Bitboard singlePush = pawnSinglePush<sideToMove>(pawns, empty);
-		while (singlePush) {
+		if constexpr (!captures) {
+			Bitboard singlePush = pawnSinglePush<sideToMove>(pawns, empty);
+			while (singlePush) {
 
-			target = popLSB(singlePush);
-			start = target - (sideToMove == WHITE ? 8 : -8);
+				target = popLSB(singlePush);
+				start = target - (sideToMove == WHITE ? 8 : -8);
 
-			// promotion check
-			if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
-				moveList.addMove(createMove(start, target, QUEEN, PROMOTION));
-				moveList.addMove(createMove(start, target, ROOK, PROMOTION));
-				moveList.addMove(createMove(start, target, BISHOP, PROMOTION));
-				moveList.addMove(createMove(start, target, KNIGHT, PROMOTION));
+				// promotion check
+				if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
+					moveList.addMove(createMove(start, target, QUEEN, PROMOTION));
+					moveList.addMove(createMove(start, target, ROOK, PROMOTION));
+					moveList.addMove(createMove(start, target, BISHOP, PROMOTION));
+					moveList.addMove(createMove(start, target, KNIGHT, PROMOTION));
+				}
+				else {
+					moveList.addMove(createMove(start, target, NO_PROMOTION, NORMAL));
+				}
 			}
-			else {
+
+
+			Bitboard doublePush = pawnDoublePush<sideToMove>(pawns, empty);
+			while (doublePush) {
+
+				target = popLSB(doublePush);
+				start = target - (sideToMove == WHITE ? 16 : -16);
+
 				moveList.addMove(createMove(start, target, NO_PROMOTION, NORMAL));
 			}
-		}
-
-		Bitboard doublePush = pawnDoublePush<sideToMove>(pawns, empty);
-		while (doublePush) {
-			
-			target = popLSB(doublePush);
-			start = target - (sideToMove == WHITE ? 16 : -16);
-
-			moveList.addMove(createMove(start, target, NO_PROMOTION, NORMAL));
 		}
 
 		Bitboard leftAttack = pawnLeftAttack<sideToMove, ePSq>(pawns, enemy);
@@ -145,16 +148,19 @@ namespace Engine {
 	}
 
 	// generate pseudo knight moves
-	template <Color sideToMove>
+	template <Color sideToMove, bool captures>
 	void generateKnightMove(const Board& board, MoveList& moveList) {
 
 		Bitboard knights = sideToMove == WHITE? board.pieces[WHITE][KNIGHT] : board.pieces[BLACK][KNIGHT];
-		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		while (knights) {
 			
 			Square start = popLSB(knights);
-			Bitboard attacks = KNIGHT_ATTACKS[start] & ~friends;
+			Bitboard attacks;
+			if constexpr (captures) attacks = KNIGHT_ATTACKS[start] & enemies;
+			else attacks = KNIGHT_ATTACKS[start] & ~friends;
 
 			while (attacks) {
 
@@ -165,14 +171,17 @@ namespace Engine {
 	}
 
 	// generate pseudo king moves
-	template <Color sideToMove>
+	template <Color sideToMove, bool captures>
 	void generateKingMove(const Board& board, MoveList& moveList) {
 
 		Bitboard king = sideToMove == WHITE ? board.pieces[WHITE][KING] : board.pieces[BLACK][KING];
 		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		int start = getLSB(king);
-		Bitboard attacks = KING_ATTACKS[start] & ~friends;
+		Bitboard attacks;
+		if constexpr (captures) attacks = KING_ATTACKS[start] & enemies;
+		else attacks = KING_ATTACKS[start] & ~friends;
 
 		while (attacks) {
 
@@ -209,16 +218,19 @@ namespace Engine {
 	}
 
 	// generate pseudo bishop moves
-	template <Color sideToMove>
+	template <Color sideToMove, bool captures>
 	void generateBishopMove(const Board& board, MoveList& moveList) {
 
 		Bitboard bishops = sideToMove == WHITE? board.pieces[WHITE][BISHOP] : board.pieces[BLACK][BISHOP];
-		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		while (bishops) {
 			
 			Square start = popLSB(bishops);
-			Bitboard attacks = getBishopAttacks(board.occupancy[BOTH], start) & ~friends;
+			Bitboard attacks;
+			if constexpr (captures) attacks = getBishopAttacks(board.occupancy[BOTH], start) & enemies;
+			else attacks = getBishopAttacks(board.occupancy[BOTH], start) & ~friends;
 
 			while (attacks) {
 
@@ -239,16 +251,19 @@ namespace Engine {
 	}
 
 	// generate pseudo bishop moves
-	template <Color sideToMove>
+	template <Color sideToMove, bool captures>
 	void generateRookMove(const Board& board, MoveList& moveList) {
 		
 		Bitboard rooks = sideToMove == WHITE ? board.pieces[WHITE][ROOK] : board.pieces[BLACK][ROOK];
-		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
 
 		while (rooks) {
 			
 			Square start = popLSB(rooks);
-			Bitboard attacks = getRookAttacks(board.occupancy[BOTH], start) & ~friends;
+			Bitboard attacks;
+			if constexpr (captures) attacks = getRookAttacks(board.occupancy[BOTH], start) & enemies;
+			else attacks = getRookAttacks(board.occupancy[BOTH], start) & ~friends;
 
 			while (attacks) {
 
@@ -259,22 +274,24 @@ namespace Engine {
 	}
 
 	// retrieve queen moves from rook and bishop 
-	inline Bitboard getQueenAttacks(Bitboard occ, int sq)
-	{
+	inline Bitboard getQueenAttacks(Bitboard occ, int sq) {
 		return getRookAttacks(occ, sq) | getBishopAttacks(occ, sq);
 	}
 
 	// generate pseudo queen moves
-	template <Color sideToMove>
+	template <Color sideToMove, bool captures>
 	void generateQueenkMove(const Board& board, MoveList& moveList) {
 
 		Bitboard queens = sideToMove == WHITE ? board.pieces[WHITE][QUEEN] : board.pieces[BLACK][QUEEN];
-		Bitboard friends = sideToMove == WHITE? board.occupancy[WHITE] : board.occupancy[BLACK];
-		
+		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+
 		while (queens) {
 			
 			Square start = popLSB(queens);
-			Bitboard attacks = getQueenAttacks(board.occupancy[BOTH], start) & ~friends;
+			Bitboard attacks;
+			if constexpr (captures) attacks = getQueenAttacks(board.occupancy[BOTH], start) & enemies;
+			else attacks =  getQueenAttacks(board.occupancy[BOTH], start) & ~friends;
 
 			while (attacks) {
 
@@ -285,15 +302,15 @@ namespace Engine {
 	}
 
 	// all pseudo moves
-	template <Color sideToMove, Square ePSq>
+	template <Color sideToMove, Square ePSq, bool captures>
 	void generatePseudoMove(const Board& board, MoveList& moveList) {
 
-		generatePawnMoves<sideToMove, ePSq>(board, moveList);
-		generateKnightMove<sideToMove>(board, moveList);
-		generateKingMove<sideToMove>(board, moveList);
-		generateBishopMove<sideToMove>(board, moveList);
-		generateRookMove<sideToMove>(board, moveList);
-		generateQueenkMove<sideToMove>(board, moveList);
+		generatePawnMoves<sideToMove, ePSq, captures>(board, moveList);
+		generateKnightMove<sideToMove, captures>(board, moveList);
+		generateKingMove<sideToMove, captures>(board, moveList);
+		generateBishopMove<sideToMove, captures>(board, moveList);
+		generateRookMove<sideToMove, captures>(board, moveList);
+		generateQueenkMove<sideToMove, captures>(board, moveList);
 	}
 
 	// checks if a particular square is being attacked by enemy pieces
@@ -512,7 +529,7 @@ namespace Engine {
 	}
 
 	// generate all legal moves by passing all pseduo moves through is legal function
-	template <bool ScoreMoves>
+	template <bool ScoreMoves, bool captures>
 	void generateLegalMoves(const Board& board, MoveList& moveList)
 	{
 		CheckInfo ci;
@@ -523,22 +540,24 @@ namespace Engine {
 
 			switch (board.enPassantSq) {
 
-			case A6: generatePseudoMove<WHITE, A6>(board, moveList);  break;
-			case B6: generatePseudoMove<WHITE, B6>(board, moveList);  break;
-			case C6: generatePseudoMove<WHITE, C6>(board, moveList);  break;
-			case D6: generatePseudoMove<WHITE, D6>(board, moveList);  break;
-			case E6: generatePseudoMove<WHITE, E6>(board, moveList);  break;
-			case F6: generatePseudoMove<WHITE, F6>(board, moveList);  break;
-			case G6: generatePseudoMove<WHITE, G6>(board, moveList);  break;
-			case H6: generatePseudoMove<WHITE, H6>(board, moveList);  break;
-			default: generatePseudoMove<WHITE, SQ_NONE>(board, moveList);  break;
+			case A6: generatePseudoMove<WHITE, A6, captures>(board, moveList);  break;
+			case B6: generatePseudoMove<WHITE, B6, captures>(board, moveList);  break;
+			case C6: generatePseudoMove<WHITE, C6, captures>(board, moveList);  break;
+			case D6: generatePseudoMove<WHITE, D6, captures>(board, moveList);  break;
+			case E6: generatePseudoMove<WHITE, E6, captures>(board, moveList);  break;
+			case F6: generatePseudoMove<WHITE, F6, captures>(board, moveList);  break;
+			case G6: generatePseudoMove<WHITE, G6, captures>(board, moveList);  break;
+			case H6: generatePseudoMove<WHITE, H6, captures>(board, moveList);  break;
+			default: generatePseudoMove<WHITE, SQ_NONE, captures>(board, moveList);  break;
 			}
 
-			if (board.castlingRights & WHITE_OO) {
-				generateWhiteCastles<WHITE_OO>(moveList);
-			}
-			if (board.castlingRights & WHITE_OOO) {
-				generateWhiteCastles<WHITE_OOO>(moveList);
+			if constexpr (!captures) {
+				if (board.castlingRights & WHITE_OO) {
+					generateWhiteCastles<WHITE_OO>(moveList);
+				}
+				if (board.castlingRights & WHITE_OOO) {
+					generateWhiteCastles<WHITE_OOO>(moveList);
+				}
 			}
 
 			int index = 0;
@@ -557,22 +576,24 @@ namespace Engine {
 			ci = getCheckInfo<BLACK>(board);
 			switch (board.enPassantSq) {
 
-			case A3: generatePseudoMove<BLACK, A3>(board, moveList);  break;
-			case B3: generatePseudoMove<BLACK, B3>(board, moveList);  break;
-			case C3: generatePseudoMove<BLACK, C3>(board, moveList);  break;
-			case D3: generatePseudoMove<BLACK, D3>(board, moveList);  break;
-			case E3: generatePseudoMove<BLACK, E3>(board, moveList);  break;
-			case F3: generatePseudoMove<BLACK, F3>(board, moveList);  break;
-			case G3: generatePseudoMove<BLACK, G3>(board, moveList);  break;
-			case H3: generatePseudoMove<BLACK, H3>(board, moveList);  break;
-			default: generatePseudoMove<BLACK, SQ_NONE>(board, moveList);  break;
+			case A3: generatePseudoMove<BLACK, A3, captures>(board, moveList);  break;
+			case B3: generatePseudoMove<BLACK, B3, captures>(board, moveList);  break;
+			case C3: generatePseudoMove<BLACK, C3, captures>(board, moveList);  break;
+			case D3: generatePseudoMove<BLACK, D3, captures>(board, moveList);  break;
+			case E3: generatePseudoMove<BLACK, E3, captures>(board, moveList);  break;
+			case F3: generatePseudoMove<BLACK, F3, captures>(board, moveList);  break;
+			case G3: generatePseudoMove<BLACK, G3, captures>(board, moveList);  break;
+			case H3: generatePseudoMove<BLACK, H3, captures>(board, moveList);  break;
+			default: generatePseudoMove<BLACK, SQ_NONE, captures>(board, moveList);  break;
 			}
 
-			if (board.castlingRights & BLACK_OO) {
-				generateBlackCastles<BLACK_OO>(moveList);
-			}
-			if (board.castlingRights & BLACK_OOO) {
-				generateBlackCastles<BLACK_OOO>(moveList);
+			if constexpr (!captures) {
+				if (board.castlingRights & BLACK_OO) {
+					generateBlackCastles<BLACK_OO>(moveList);
+				}
+				if (board.castlingRights & BLACK_OOO) {
+					generateBlackCastles<BLACK_OOO>(moveList);
+				}
 			}
 
 			int index = 0;
@@ -588,8 +609,9 @@ namespace Engine {
 			}
 		}
 	}
-
 	
-	template void generateLegalMoves<true>(const Board& board, MoveList& moveList);
-	template void generateLegalMoves<false>(const Board& board, MoveList& moveList);
+	template void generateLegalMoves<true, true>(const Board& board, MoveList& moveList);
+	template void generateLegalMoves<true, false>(const Board& board, MoveList& moveList);
+	template void generateLegalMoves<false, true>(const Board& board, MoveList& moveList);
+	template void generateLegalMoves<false, false>(const Board& board, MoveList& moveList);
 }

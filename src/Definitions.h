@@ -73,6 +73,13 @@ enum MoveTypes : uint8_t{
 	PROMOTION
 };
 
+enum MoveGenFlags : bool {
+	SCORE_GEN_TRUE = true,
+	SCORE_GEN_FALSE = false,
+	CAPTURE_TRUE = true,
+	CAPTURE_FALSE = false
+};
+
 // int to piece string array for printing promotions for move
 inline const std::array<std::string, 8> intToPieceString { "", "P", "N", "B", "R", "Q", "K", "F"};
 

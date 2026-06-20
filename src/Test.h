@@ -14,7 +14,7 @@ namespace Engine {
 		uint64_t nodes = 0;
 		MoveList moveList;
 
-		generateLegalMoves<false>(board, moveList);
+		generateLegalMoves<SCORE_GEN_FALSE, CAPTURE_FALSE>(board, moveList);
 
 		if (depth == 1) return moveList.end;
 
