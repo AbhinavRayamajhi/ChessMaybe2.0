@@ -7,71 +7,71 @@ namespace Engine {
 	std::array<Bitboard, 88772> ROOK_ATTACKS{ 0 };
 
 	// pawn pushes
-	template <Color sideToMove>
+	template <Color side>
 	inline Bitboard pawnSinglePush(Bitboard pawns, Bitboard empty) {
 
-		if (sideToMove == WHITE)
-			return (pawns << 8) & empty;
+		if (side == WHITE)
+			return bitboardShift<NORTH>(pawns) & empty;
 		else
-			return (pawns >> 8) & empty;
+			return bitboardShift<SOUTH>(pawns) & empty;
 	}
 
-	template <Color sideToMove>
+	template <Color side>
 	inline Bitboard pawnDoublePush(Bitboard pawns, Bitboard empty) {
 
-		if (sideToMove == WHITE) {
+		if (side == WHITE) {
 
-			pawns = pawnSinglePush<WHITE>(pawns, empty);
-			return ((pawns & RANK_3) << 8) & empty;
+			pawns = pawnSinglePush<WHITE>(pawns & RANK_2, empty); // only rank 2 white pawns can have double push
+			return bitboardShift<NORTH>(pawns) & empty;
 		}
 		else {
 
-			pawns = pawnSinglePush<BLACK>(pawns, empty);
-			return ((pawns & RANK_6) >> 8) & empty;
+			pawns = pawnSinglePush<BLACK>(pawns & RANK_7, empty); // only rank 7 black pawns
+			return bitboardShift<SOUTH>(pawns) & empty;
 		}
 	}
 
 	// pawn attacks
-	template <Color sideToMove, Square ePSq>
+	template <Color side, Square epSq>
 	inline Bitboard pawnLeftAttack(Bitboard pawns, Bitboard enemy) {
 
-		// set enPassantSq in enemy to 1, if not -1, so pawns can attack it
-		if (ePSq != SQ_NONE) setBit(enemy, ePSq);
+		// set enPassantSq in enemy to 1 so pawns can attack it
+		if (epSq != SQ_NONE) setBit(enemy, epSq);
 
-		if (sideToMove == WHITE)
-			return (pawns << 7) & ~FILE_H & enemy;
+		if (side == WHITE)
+			return bitboardShift<NORTH_WEST>(pawns) & enemy;
 		else
-			return (pawns >> 9) & ~FILE_H & enemy;
+			return bitboardShift<SOUTH_WEST>(pawns) & enemy;
 	}
 
-	template <Color sideToMove, Square ePSq>
+	template <Color side, Square epSq>
 	inline Bitboard pawnRightAttack(Bitboard pawns, Bitboard enemy) {
 
-		// set enPassantSq in enemy to 1, if not -1, so pawns can attack it
-		if (ePSq != SQ_NONE) setBit(enemy, ePSq);
+		// set enPassantSq in enemy to 1 so pawns can attack it
+		if (epSq != SQ_NONE) setBit(enemy, epSq);
 
-		if (sideToMove == WHITE)
-			return (pawns << 9) & ~FILE_A & enemy;
+		if (side == WHITE)
+			return bitboardShift<NORTH_EAST>(pawns) & enemy;
 		else
-			return (pawns >> 7) & ~FILE_A & enemy;
+			return bitboardShift<SOUTH_EAST>(pawns) & enemy;
 	}
 
 	// generate pseudo pawn pushes
-	template <Color sideToMove, Square ePSq, bool captures>
+	template <Color side, Square ePSq, bool captures>
 	void generatePawnMoves(const Board& board, MoveList& moveList) {
 
-		Bitboard pawns = sideToMove == WHITE ? board.pieces[WHITE][PAWN] : board.pieces[BLACK][PAWN];
-		Bitboard enemy = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+		Bitboard pawns = board.pieces[side][PAWN];
+		Bitboard enemy = board.occupancy[!side];
 		Bitboard empty = ~board.occupancy[BOTH];
 
 		Square start, target;
 
 		if constexpr (!captures) {
-			Bitboard singlePush = pawnSinglePush<sideToMove>(pawns, empty);
+			Bitboard singlePush = pawnSinglePush<side>(pawns, empty);
 			while (singlePush) {
 
 				target = popLSB(singlePush);
-				start = target - (sideToMove == WHITE ? 8 : -8);
+				start = target - (side== WHITE ? 8 : -8);
 
 				// promotion check
 				if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
@@ -86,21 +86,21 @@ namespace Engine {
 			}
 
 
-			Bitboard doublePush = pawnDoublePush<sideToMove>(pawns, empty);
+			Bitboard doublePush = pawnDoublePush<side>(pawns, empty);
 			while (doublePush) {
 
 				target = popLSB(doublePush);
-				start = target - (sideToMove == WHITE ? 16 : -16);
+				start = target - (side == WHITE ? 16 : -16);
 
 				moveList.addMove(createMove(start, target, NO_PROMOTION, NORMAL));
 			}
 		}
 
-		Bitboard leftAttack = pawnLeftAttack<sideToMove, ePSq>(pawns, enemy);
+		Bitboard leftAttack = pawnLeftAttack<side, ePSq>(pawns, enemy);
 		while (leftAttack) {
 
 			target = popLSB(leftAttack);
-			start = target - (sideToMove == WHITE ? 7 : -9);
+			start = target - (side == WHITE ? 7 : -9);
 
 			// promotion check
 			if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
@@ -121,11 +121,11 @@ namespace Engine {
 			}
 		}
 
-		Bitboard rightAttack = pawnRightAttack<sideToMove, ePSq>(pawns, enemy);
+		Bitboard rightAttack = pawnRightAttack<side, ePSq>(pawns, enemy);
 		while (rightAttack) {
 
 			target = popLSB(rightAttack);
-			start = target - (sideToMove == WHITE ? 9 : -7);
+			start = target - (side == WHITE ? 9 : -7);
 
 			// promotion check
 			if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
@@ -148,12 +148,12 @@ namespace Engine {
 	}
 
 	// generate pseudo knight moves
-	template <Color sideToMove, bool captures>
+	template <Color side, bool captures>
 	void generateKnightMove(const Board& board, MoveList& moveList) {
 
-		Bitboard knights = sideToMove == WHITE? board.pieces[WHITE][KNIGHT] : board.pieces[BLACK][KNIGHT];
-		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+		Bitboard knights = board.pieces[side][KNIGHT];
+		Bitboard friends = board.occupancy[side];
+		Bitboard enemies = board.occupancy[!side];
 
 		while (knights) {
 			
@@ -171,12 +171,12 @@ namespace Engine {
 	}
 
 	// generate pseudo king moves
-	template <Color sideToMove, bool captures>
+	template <Color side, bool captures>
 	void generateKingMove(const Board& board, MoveList& moveList) {
 
-		Bitboard king = sideToMove == WHITE ? board.pieces[WHITE][KING] : board.pieces[BLACK][KING];
-		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+		Bitboard king    = board.pieces[side][KING];
+		Bitboard friends = board.occupancy[side];
+		Bitboard enemies = board.occupancy[!side];
 
 		int start = getLSB(king);
 		Bitboard attacks;
@@ -218,12 +218,12 @@ namespace Engine {
 	}
 
 	// generate pseudo bishop moves
-	template <Color sideToMove, bool captures>
+	template <Color side, bool captures>
 	void generateBishopMove(const Board& board, MoveList& moveList) {
 
-		Bitboard bishops = sideToMove == WHITE? board.pieces[WHITE][BISHOP] : board.pieces[BLACK][BISHOP];
-		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+		Bitboard bishops = board.pieces[side][BISHOP];
+		Bitboard friends = board.occupancy[side];
+		Bitboard enemies = board.occupancy[!side];
 
 		while (bishops) {
 			
@@ -251,12 +251,12 @@ namespace Engine {
 	}
 
 	// generate pseudo bishop moves
-	template <Color sideToMove, bool captures>
+	template <Color side, bool captures>
 	void generateRookMove(const Board& board, MoveList& moveList) {
 		
-		Bitboard rooks = sideToMove == WHITE ? board.pieces[WHITE][ROOK] : board.pieces[BLACK][ROOK];
-		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+		Bitboard rooks   = board.pieces[side][ROOK];
+		Bitboard friends = board.occupancy[side];
+		Bitboard enemies = board.occupancy[!side];
 
 		while (rooks) {
 			
@@ -279,12 +279,12 @@ namespace Engine {
 	}
 
 	// generate pseudo queen moves
-	template <Color sideToMove, bool captures>
+	template <Color side, bool captures>
 	void generateQueenkMove(const Board& board, MoveList& moveList) {
 
-		Bitboard queens = sideToMove == WHITE ? board.pieces[WHITE][QUEEN] : board.pieces[BLACK][QUEEN];
-		Bitboard friends = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
-		Bitboard enemies = sideToMove == WHITE ? board.occupancy[BLACK] : board.occupancy[WHITE];
+		Bitboard queens  = board.pieces[side][QUEEN];
+		Bitboard friends = board.occupancy[side];
+		Bitboard enemies = board.occupancy[!side];
 
 		while (queens) {
 			
@@ -302,33 +302,33 @@ namespace Engine {
 	}
 
 	// all pseudo moves
-	template <Color sideToMove, Square ePSq, bool captures>
+	template <Color side, Square ePSq, bool captures>
 	void generatePseudoMove(const Board& board, MoveList& moveList) {
 
-		generatePawnMoves<sideToMove, ePSq, captures>(board, moveList);
-		generateKnightMove<sideToMove, captures>(board, moveList);
-		generateKingMove<sideToMove, captures>(board, moveList);
-		generateBishopMove<sideToMove, captures>(board, moveList);
-		generateRookMove<sideToMove, captures>(board, moveList);
-		generateQueenkMove<sideToMove, captures>(board, moveList);
+		generatePawnMoves<side, ePSq, captures>(board, moveList);
+		generateKnightMove<side, captures>(board, moveList);
+		generateKingMove<side, captures>(board, moveList);
+		generateBishopMove<side, captures>(board, moveList);
+		generateRookMove<side, captures>(board, moveList);
+		generateQueenkMove<side, captures>(board, moveList);
 	}
 
 	// checks if a particular square is being attacked by enemy pieces
-	template <Color sideToMove>
+	template <Color side>
 	inline Bitboard squareAttackers(const Board& board, Square sq) {
 
 		Bitboard attackers = 0ULL;
 		Bitboard self = 1ULL << sq;
-		Bitboard enemyP = sideToMove == WHITE ? board.pieces[BLACK][PAWN] : board.pieces[WHITE][PAWN];
-		Bitboard enemyN = sideToMove == WHITE ? board.pieces[BLACK][KNIGHT] : board.pieces[WHITE][KNIGHT];
-		Bitboard enemyB = sideToMove == WHITE ? board.pieces[BLACK][BISHOP] : board.pieces[WHITE][BISHOP];
-		Bitboard enemyR = sideToMove == WHITE ? board.pieces[BLACK][ROOK]   : board.pieces[WHITE][ROOK];
-		Bitboard enemyQ = sideToMove == WHITE ? board.pieces[BLACK][QUEEN]  : board.pieces[WHITE][QUEEN];
-		Bitboard enemyK = sideToMove == WHITE ? board.pieces[BLACK][KING]   : board.pieces[WHITE][KING];
+		Bitboard enemyP = board.pieces[!side][PAWN];
+		Bitboard enemyN = board.pieces[!side][KNIGHT];
+		Bitboard enemyB = board.pieces[!side][BISHOP];
+		Bitboard enemyR = board.pieces[!side][ROOK];
+		Bitboard enemyQ = board.pieces[!side][QUEEN];
+		Bitboard enemyK = board.pieces[!side][KING];
 		
 		// calculate all attacks from the sq and see if the corresponding enemy piece is in that attack
-		attackers |= pawnLeftAttack<sideToMove, SQ_NONE>(self, enemyP);
-		attackers |= pawnRightAttack<sideToMove, SQ_NONE>(self, enemyP);
+		attackers |= pawnLeftAttack<side, SQ_NONE>(self, enemyP);
+		attackers |= pawnRightAttack<side, SQ_NONE>(self, enemyP);
 		attackers |= KNIGHT_ATTACKS[sq] & enemyN;
 		attackers |= getBishopAttacks(board.occupancy[BOTH], sq) & enemyB;
 		attackers |= getRookAttacks(board.occupancy[BOTH], sq) & enemyR;
@@ -357,21 +357,21 @@ namespace Engine {
 	}
 
 	// calculates check info, pinned pieces, checkers and check masks
-	template <Color sideToMove>
+	template <Color side>
 	inline CheckInfo getCheckInfo(const Board& board) {
 
 		CheckInfo ci;
 		Bitboard occ = board.occupancy[BOTH];
 
-		Square kSq = sideToMove == WHITE ? getLSB(board.pieces[WHITE][KING]) : getLSB(board.pieces[BLACK][KING]);
-		Bitboard enemyB   = sideToMove == WHITE ? board.pieces[BLACK][BISHOP]: board.pieces[WHITE][BISHOP];
-		Bitboard enemyR   = sideToMove == WHITE ? board.pieces[BLACK][ROOK] : board.pieces[WHITE][ROOK];
-		Bitboard enemyQ   = sideToMove == WHITE ? board.pieces[BLACK][QUEEN]: board.pieces[WHITE][QUEEN];
-		Bitboard friends  = sideToMove == WHITE ? board.occupancy[WHITE] : board.occupancy[BLACK];
+		Square kSq            = getLSB(board.pieces[side][KING]);
+		Bitboard enemyB       = board.pieces[!side][BISHOP];
+		Bitboard enemyR       = board.pieces[!side][ROOK];
+		Bitboard enemyQ       = board.pieces[!side][QUEEN];
+		Bitboard friends      = board.occupancy[side];
 		Bitboard enemySliders = enemyB | enemyR | enemyQ;
 
 		// checkers are all pieces attacking the king currently
-		ci.checkers = squareAttackers<sideToMove>(board, kSq);
+		ci.checkers = squareAttackers<side>(board, kSq);
 
 		Bitboard rookAttacks = getRookAttacks(occ, kSq);
 		Bitboard bishopAttacks = getBishopAttacks(occ, kSq);

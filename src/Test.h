@@ -16,7 +16,7 @@ namespace Engine {
 
 		generateLegalMoves<SCORE_GEN_FALSE, CAPTURE_FALSE>(board, moveList);
 
-		if (depth == 1) return moveList.end;
+		if (depth == 1) return moveList.end; // bulk counting
 
 		for (int i = 0; i < moveList.end; ++i) {
 
@@ -43,7 +43,7 @@ namespace Engine {
 	}
 
 	inline void testSuite() {
-		
+
 		Board board = Board(std::string("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1"));
 		std::cout << "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1\n\n";
 		std::cout << "Depth 1 " << ((perfTest(board, 1) == 20) ? "Passed\n" : "Failed\n");

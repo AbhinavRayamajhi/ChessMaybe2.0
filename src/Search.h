@@ -65,10 +65,10 @@ namespace Engine {
 		}
 
 		// Mate distance pruning
-		alpha = std::max(alpha, -(INF + depth));   // can't be worse than getting mated right now
-		beta = std::min(beta, INF + depth);         // can't be better than mating right now
+		alpha = std::max(alpha, -(INF + depth));   
+		beta = std::min(beta, INF + depth);        
 
-		if (alpha >= beta) return alpha;            // window collapsed, no point searching further
+		if (alpha >= beta) return alpha;            
 
 		MoveList moveList;
 		generateLegalMoves <SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);

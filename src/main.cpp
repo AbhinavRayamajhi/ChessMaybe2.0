@@ -9,14 +9,14 @@
 #include "Magic.h"
 #include "Search.h"
 
-int main()
-{
+int main() {
+	
 	std::string FEN = "5k2/4b1p1/2N1Q2p/p1p5/8/3P1P2/1P1P2PP/2B1R1K1 w - - 2 24";
 
 	Engine::computeSliderAttack();
 	auto start = std::chrono::steady_clock::now();
 
-#if 1
+#if 0
 	// search
 	int depth = 7;
 	uint64_t nodes = 0;
@@ -52,7 +52,7 @@ int main()
 	
 #endif
 
-#if 0
+#if 1
 	Engine::testSuite();
 	uint64_t nodes = 1494874546;
 #endif

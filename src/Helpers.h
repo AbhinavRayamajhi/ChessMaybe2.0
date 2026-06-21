@@ -98,19 +98,19 @@ inline void printBitboard(Bitboard bb) {
 		std::cout << "\n";
 	}
 	std::cout << "\n   a b c d e f g h\n\n";
+
 }
 
-inline Bitboard bitboardShift(Bitboard bb, Direction dir) {
+template<Direction dir>
+inline Bitboard bitboardShift(Bitboard bb) {
 
-    switch(dir) {
-        case NORTH            : return bb << 8; break;
-        case SOUTH            : return bb >> 8; break;
-        case EAST             : return (bb & ~FILE_H) << 1; break;
-        case WEST             : return (bb & ~FILE_A) >> 1; break;
-        case NORTH_EAST       : return (bb & ~FILE_H) << 9; break;
-        case NORTH_WEST       : return (bb & ~FILE_A) << 7; break;
-        case SOUTH_EAST       : return (bb & ~FILE_H) >> 7; break;
-        case SOUTH_WEST       : return (bb & ~FILE_A) >> 9; break;
-        default : return 0ULL;
-    }
+    if constexpr (dir == NORTH)      return bb << 8; 
+    if constexpr (dir == SOUTH)      return bb >> 8; 
+    if constexpr (dir == EAST)       return (bb & ~FILE_H) << 1; 
+    if constexpr (dir == WEST)       return (bb & ~FILE_A) >> 1; 
+    if constexpr (dir == NORTH_EAST) return (bb & ~FILE_H) << 9; 
+    if constexpr (dir == NORTH_WEST) return (bb & ~FILE_A) << 7; 
+    if constexpr (dir == SOUTH_EAST) return (bb & ~FILE_H) >> 7; 
+    if constexpr (dir == SOUTH_WEST) return (bb & ~FILE_A) >> 9; 
+    return 0ULL;
 }

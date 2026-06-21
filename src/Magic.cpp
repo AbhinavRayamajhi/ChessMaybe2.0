@@ -9,7 +9,8 @@ namespace Engine {
 		Bitboard ray = 0ULL;
 		setBit(cur, sq);
 
-		ray = bitboardShift(cur, NORTH_WEST);
+		
+		ray = bitboardShift<NORTH_WEST>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -17,10 +18,10 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, NORTH_WEST);
+			ray = bitboardShift<NORTH_WEST>(ray);
 		}
 
-		ray = bitboardShift(cur, SOUTH_WEST);
+		ray = bitboardShift<SOUTH_WEST>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -28,10 +29,10 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, SOUTH_WEST);
+			ray = bitboardShift<SOUTH_WEST>(ray);
 		}
 
-		ray = bitboardShift(cur, NORTH_EAST);
+		ray = bitboardShift<NORTH_EAST>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -39,10 +40,10 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, NORTH_EAST);
+			ray = bitboardShift<NORTH_EAST>(ray);
 		}
 
-		ray = bitboardShift(cur, SOUTH_EAST);
+		ray = bitboardShift<SOUTH_EAST>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -50,7 +51,7 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, SOUTH_EAST);
+			ray = bitboardShift<SOUTH_EAST>(ray);
 		}
 
 		return attacks;
@@ -63,7 +64,7 @@ namespace Engine {
 		Bitboard ray = 0ULL;
 		setBit(cur, sq);
 
-		ray = bitboardShift(cur, NORTH);
+		ray = bitboardShift<NORTH>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -71,10 +72,10 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, NORTH);
+			ray = bitboardShift<NORTH>(ray);
 		}
 
-		ray = bitboardShift(cur, SOUTH);
+		ray = bitboardShift<SOUTH>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -82,10 +83,10 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, SOUTH);
+			ray = bitboardShift<SOUTH>(ray);
 		}
 
-		ray = bitboardShift(cur, WEST);
+		ray = bitboardShift<WEST>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -93,10 +94,10 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, WEST);
+			ray = bitboardShift<WEST>(ray);
 		}
 
-		ray = bitboardShift(cur, EAST);
+		ray =  bitboardShift<EAST>(cur);
 		while (ray != 0ULL) {
 
 			attacks |= ray;
@@ -104,7 +105,7 @@ namespace Engine {
 				break;
 			}
 
-			ray = bitboardShift(ray, EAST);
+			ray = bitboardShift<EAST>(ray);
 		}
 
     	return attacks;
@@ -134,7 +135,7 @@ namespace Engine {
 			int rookEntries = 1 << 12;
 
 			for (int i = 0; i < bishopEntries; ++i) {
-
+				
 				Bitboard blockers = generateBlockers(i, BISHOP_MASKS[sq]);
 				Bitboard index = ((blockers * BISHOP_MAGICS[sq]) >> 55) + BISHOP_OFFSETS[sq];
 				BISHOP_ATTACKS[index] = bishopAttackForBlocker(sq, blockers);
