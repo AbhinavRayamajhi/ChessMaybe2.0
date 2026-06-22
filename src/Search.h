@@ -114,44 +114,62 @@ namespace Engine {
 		return alpha;
 	}
 
-	inline int getBestMove(Board& board, int depth, uint64_t& nodes, bool debug) {
+	inline int getBestMove(Board& board, const int MAX_DEPTH, uint64_t& nodes, bool debug) {
 
 		MoveList moveList;
 		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
 
 		int bestMove = moveList.list[0];
-		int bestScore = INT32_MIN + 1;
 		int beta = INT32_MAX;
 
-		for (int i = 0; i < moveList.end; ++i) {
+		for (int depth = 1; depth < MAX_DEPTH; depth++) {
 
-			// find best move
-			int bestInd = i;
-			for (int j = i + 1; j < moveList.end; ++j) {
+			int bestScore = INT32_MIN + 1;
 
-				if (moveList.score[j] > moveList.score[bestInd]) {
-					bestInd = j;
+			for (int i = 0; i < moveList.end; ++i) {
+
+				// find best move is selection sort so should only start from index 1 as index 0 is left for best move
+				if (i != 0) {
+
+					int bestInd = i;
+					for (int j = i + 1; j < moveList.end; ++j) {
+
+						if (moveList.score[j] > moveList.score[bestInd]) {
+							bestInd = j;
+						}
+					}
+					moveList.swapMoveScore(i, bestInd);
+				}
+
+				History h;
+				makeMove(moveList.list[i], board, h);
+				int currentScore = -search(board, depth - 1, -beta, -bestScore, nodes);
+				unmakeMove(board, h);
+
+
+				nodes++;
+				if (currentScore > bestScore) {
+
+					bestScore = currentScore;
+					bestMove = moveList.list[i];
+				}
+
+				if (debug) {
+					printMove(moveList.list[i]);
+					std::cout << ": " << currentScore << std::endl;
 				}
 			}
 
-			moveList.swapMoveScore(i, bestInd);
+			if (bestMove != moveList.list[0]) {
 
-			History h;
-			makeMove(moveList.list[i], board, h);
-			int currentScore = -search(board, depth - 1, -beta, -bestScore, nodes);
-			unmakeMove(board,  h);
-
-
-			nodes++;
-			if (currentScore > bestScore) {
-
-				bestScore = currentScore;
-				bestMove = moveList.list[i];
-			}
-
-			if (debug) {
-				printMove(moveList.list[i]);
-				std::cout << ": " << currentScore << std::endl;
+				// swap everything with first index till we reach the target index with best move and swap one last time with first index
+				// preserves order for the rest of the moves and brings bestMove to the front to be analyzed first for deeper searches
+				int index = 1;
+				while (moveList.list[index] != bestMove) {
+					moveList.swapMoveScore(index, 0);
+					++index;
+				}
+				moveList.swapMoveScore(index, 0);
 			}
 		}
 
