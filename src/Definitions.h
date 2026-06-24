@@ -95,6 +95,13 @@ inline const std::map<char, File> fileToInt {
 	{'h', 7}
 };
 
+inline const std::map<char, Pieces> promotionMap{
+	{'N', KNIGHT},
+	{'B', BISHOP},
+	{'R', ROOK},
+	{'Q', QUEEN}
+};
+
 // board file definitions
 inline constexpr Bitboard FILE_A = 0x0101010101010101;
 inline constexpr Bitboard FILE_B = 0x0202020202020202;

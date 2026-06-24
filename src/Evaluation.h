@@ -80,7 +80,7 @@ namespace Engine {
 				Bitboard bb = board.pieces[c][p];
 				while (bb) {
 					Square sq = popLSB(bb);
-					if (c == BLACK) sq ^= 56;
+					if (c == WHITE) sq ^= 56;
 					score[c] += materialVal[p] + earlypSTable[p][sq];
 				}
 			}

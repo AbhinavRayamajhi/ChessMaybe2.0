@@ -34,13 +34,47 @@ inline MoveType getMoveType(Move m) {
 	return (m >> 14) & 0b11;
 }
 
-inline void printMove(Move move) {
+inline Move convertMoveFromString(const Board& board, std::string input) {
 
-	std::cout << squareToString(getStartSq(move)) << squareToString(getTargetSq(move));
+	Square start = stringToSquare(input.substr(0, 2));
+	Square target = stringToSquare(input.substr(2, 2));
+	MoveType moveType = NORMAL;
+	Piece promPiece = NO_PROMOTION;
+
+	if (input.length() == 5) {
+		moveType = PROMOTION;
+		promPiece = promotionMap.at(input[4]);
+	}
+	else if (target == board.enPassantSq) {
+		std::cout << "EP branch hit: target=" << (int)target << " epSq=" << (int)board.enPassantSq << std::endl;
+		moveType = ENPASSANT;
+	}
+	else if (board.sideToMove == WHITE && getBit(board.pieces[WHITE][KING], E1) && (target == C1 || target == G1)) {
+		moveType = CASTLING;
+	}
+	else if (board.sideToMove == BLACK && getBit(board.pieces[BLACK][KING], E8) && (target == C8 || target == G8)) {
+		moveType = CASTLING;
+	}
+
+	return createMove(start, target, promPiece, moveType);
+}
+
+inline std::string convertMoveToString(Move move) {
+
+	std::string res;
+	res += squareToString(getStartSq(move));
+	res += squareToString(getTargetSq(move));
 
 	if (getMoveType(move) == PROMOTION) {
-		std::cout << intToPieceString[getPromotionPiece(move)];
+		res += intToPieceString[getPromotionPiece(move)];
 	}
+
+	return res;
+}
+
+inline void printMove(Move move) {
+
+	std::cout << convertMoveToString(move);
 }
 
 inline void printMoveList(Move moveList[]) {
