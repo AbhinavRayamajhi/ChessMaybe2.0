@@ -44,6 +44,7 @@ inline Square popLSB(Bitboard& b) {
 // char to file/rank conversions
 inline File getFileFromChar(char c) {
 
+	std::cerr << "getFileFromChar: '" << c << "' (ascii " << (int)c << ")" << std::endl;
 	return fileToInt.at(c);
 }
 

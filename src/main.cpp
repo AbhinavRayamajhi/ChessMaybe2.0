@@ -12,6 +12,8 @@
 
 int main() {
 
+	freopen("/home/abhin/ChessMaybe2.0/engine_debug.log", "w", stderr);
+	std::cerr << "Engine started" << std::endl;
 	Engine::computeSliderAttack();
 	Engine::uciLoop();
 	return 0;

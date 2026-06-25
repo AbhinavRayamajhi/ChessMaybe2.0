@@ -84,7 +84,8 @@ enum MoveGenFlags : bool {
 inline const std::array<std::string, 8> intToPieceString { "", "P", "N", "B", "R", "Q", "K", "F"};
 
 // char to int rank mapping
-inline const std::map<char, File> fileToInt {
+inline const std::map<char, File> fileToInt{
+	
 	{'a', 0},
 	{'b', 1},
 	{'c', 2},
@@ -95,11 +96,11 @@ inline const std::map<char, File> fileToInt {
 	{'h', 7}
 };
 
-inline const std::map<char, Pieces> promotionMap{
-	{'N', KNIGHT},
-	{'B', BISHOP},
-	{'R', ROOK},
-	{'Q', QUEEN}
+const std::map<char, Piece> promotionMap {
+    {'q', QUEEN}, {'Q', QUEEN},
+    {'r', ROOK},  {'R', ROOK},
+    {'b', BISHOP},{'B', BISHOP},
+    {'n', KNIGHT},{'N', KNIGHT},
 };
 
 // board file definitions

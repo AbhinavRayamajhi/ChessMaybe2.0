@@ -42,11 +42,11 @@ inline Move convertMoveFromString(const Board& board, std::string input) {
 	Piece promPiece = NO_PROMOTION;
 
 	if (input.length() == 5) {
+		std::cerr << "Promotion move: '" << input << "' piece char: '" << input[4] << "' ascii: " << (int)(unsigned char)input[4] << std::endl;
 		moveType = PROMOTION;
 		promPiece = promotionMap.at(input[4]);
 	}
 	else if (target == board.enPassantSq) {
-		std::cout << "EP branch hit: target=" << (int)target << " epSq=" << (int)board.enPassantSq << std::endl;
 		moveType = ENPASSANT;
 	}
 	else if (board.sideToMove == WHITE && getBit(board.pieces[WHITE][KING], E1) && (target == C1 || target == G1)) {
@@ -57,6 +57,7 @@ inline Move convertMoveFromString(const Board& board, std::string input) {
 	}
 
 	return createMove(start, target, promPiece, moveType);
+	std::cerr << "Converting move: " << input << std::endl;
 }
 
 inline std::string convertMoveToString(Move move) {
@@ -68,7 +69,7 @@ inline std::string convertMoveToString(Move move) {
 	if (getMoveType(move) == PROMOTION) {
 		res += intToPieceString[getPromotionPiece(move)];
 	}
-
+	
 	return res;
 }
 
