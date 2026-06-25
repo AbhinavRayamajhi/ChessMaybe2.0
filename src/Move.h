@@ -42,7 +42,6 @@ inline Move convertMoveFromString(const Board& board, std::string input) {
 	Piece promPiece = NO_PROMOTION;
 
 	if (input.length() == 5) {
-		std::cerr << "Promotion move: '" << input << "' piece char: '" << input[4] << "' ascii: " << (int)(unsigned char)input[4] << std::endl;
 		moveType = PROMOTION;
 		promPiece = promotionMap.at(input[4]);
 	}
@@ -57,7 +56,6 @@ inline Move convertMoveFromString(const Board& board, std::string input) {
 	}
 
 	return createMove(start, target, promPiece, moveType);
-	std::cerr << "Converting move: " << input << std::endl;
 }
 
 inline std::string convertMoveToString(Move move) {
