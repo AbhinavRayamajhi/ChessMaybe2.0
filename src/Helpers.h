@@ -4,37 +4,37 @@
 #include <bit>
 #include "Definitions.h"
 
-inline int popCount(Bitboard b) {
+inline constexpr int popCount(Bitboard b) {
 
 	return __builtin_popcountll(b);
 }
 
-inline void resetBit(Bitboard& b, Square sq) {
+inline constexpr void resetBit(Bitboard& b, Square sq) {
 
 	b &= ~(1ULL << sq);
 }
 
-inline void setBit(Bitboard& b, Square sq) {
+inline constexpr void setBit(Bitboard& b, Square sq) {
 
 	b |= (1ULL << sq);
 }
 
-inline bool getBit(Bitboard b, Square sq) {
+inline constexpr bool getBit(Bitboard b, Square sq) {
 
 	return b & (1ULL << sq);
 }
 
-inline void clearLSB(Bitboard& b) {
+inline constexpr void clearLSB(Bitboard& b) {
 
 	b &= (b - 1);
 }
 
-inline Square getLSB(Bitboard b) {
+inline constexpr Square getLSB(Bitboard b) {
 
 	return __builtin_ctzll(b);
 }
 
-inline Square popLSB(Bitboard& b) {
+inline constexpr Square popLSB(Bitboard& b) {
 
 	Square lsb = getLSB(b);
 	clearLSB(b);
@@ -42,30 +42,29 @@ inline Square popLSB(Bitboard& b) {
 }
 
 // char to file/rank conversions
-inline File getFileFromChar(char c) {
-
-	std::cerr << "getFileFromChar: '" << c << "' (ascii " << (int)c << ")" << std::endl;
+inline constexpr File getFileFromChar(char c) {
+	
 	return fileToInt.at(c);
 }
 
-inline Rank getRankFromChar(char c) {
+inline constexpr Rank getRankFromChar(char c) {
 
 	return c - '1';
 }
 
 // square index to rank and file Conversions
-inline Rank getRankFromInt(Square square) {
+inline constexpr Rank getRankFromSquare(Square square) {
 
 	return (square >> 3) & 0b111;
 }
 
-inline File getFileFromInt(Square square) {
+inline constexpr File getFileFromSquare(Square square) {
 
 	return square & 0b111;
 }
 
 // rank and file to square index conversion
-inline Square getSquareFromRF(Rank rank, File file) {
+inline constexpr Square getSquareFromRF(Rank rank, File file) {
 
 	return (rank << 3) + file;
 }
@@ -73,8 +72,8 @@ inline Square getSquareFromRF(Rank rank, File file) {
 // square index to string conversion
 inline std::string squareToString(int square) {
 	
-	char rank = '1' + getRankFromInt(square);
-	char file = 'a' + getFileFromInt(square);
+	char rank = '1' + getRankFromSquare(square);
+	char file = 'a' + getFileFromSquare(square);
 	return std::string() + file + rank;
 }
 
@@ -103,7 +102,7 @@ inline void printBitboard(Bitboard bb) {
 }
 
 template<Direction dir>
-inline Bitboard bitboardShift(Bitboard bb) {
+inline constexpr Bitboard bitboardShift(Bitboard bb) {
 
     if constexpr (dir == NORTH)      return bb << 8; 
     if constexpr (dir == SOUTH)      return bb >> 8; 
@@ -112,6 +111,14 @@ inline Bitboard bitboardShift(Bitboard bb) {
     if constexpr (dir == NORTH_EAST) return (bb & ~FILE_H) << 9; 
     if constexpr (dir == NORTH_WEST) return (bb & ~FILE_A) << 7; 
     if constexpr (dir == SOUTH_EAST) return (bb & ~FILE_H) >> 7; 
-    if constexpr (dir == SOUTH_WEST) return (bb & ~FILE_A) >> 9; 
-    return 0ULL;
+	if constexpr (dir == SOUTH_WEST) return (bb & ~FILE_A) >> 9;
+	if constexpr (dir == NORTH_NORTH_EAST) return (bb & ~FILE_H) << 17; 
+	if constexpr (dir == NORTH_NORTH_WEST) return (bb & ~FILE_A) << 15; 
+	if constexpr (dir == SOUTH_SOUTH_EAST) return (bb & ~FILE_H) >> 15; 
+	if constexpr (dir == SOUTH_SOUTH_WEST) return (bb & ~FILE_A) >> 17; 
+	if constexpr (dir == NORTH_EAST_EAST ) return (bb & ~FILE_G & ~FILE_H) << 10; 
+	if constexpr (dir == NORTH_WEST_WEST ) return (bb & ~FILE_A & ~FILE_B) << 6; 
+	if constexpr (dir == SOUTH_EAST_EAST ) return (bb & ~FILE_G & ~FILE_H) >> 6; 
+	if constexpr (dir == SOUTH_WEST_WEST ) return (bb & ~FILE_A & ~FILE_B) >> 10; 
+	return 0ULL;
 }
