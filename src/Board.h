@@ -1,16 +1,13 @@
 #pragma once
 
-#include <assert.h>
-#include <iostream>
-#include <string>
-#include <sstream>
 #include "Definitions.h"
 #include "Helpers.h"
 
 struct Board {
 
-	Board();
+	Board() = default;
 	Board(std::string FEN);
+
 	void printBoard();
 
 	inline void updateAllOccupancy() {
@@ -62,15 +59,14 @@ struct Board {
 	}
 
 	// Members
-	std::array<std::array<Bitboard, PIECE_COUNT>, Colors::BOTH> pieces;
-	std::array<Bitboard, OCC_COUNT> occupancy;
+	std::array<std::array<Bitboard, PIECE_COUNT>, Colors::BOTH> pieces {};
+	std::array<Bitboard, OCC_COUNT> occupancy {};
 
-	Color sideToMove;
-	CastlingRight castlingRights;
-	Square enPassantSq;
+	CastlingRight castlingRights {};
+	Square enPassantSq {SQ_NONE};
+	//Key zobristKey {};
 
-	int halfMoveClock;
-	int fullMoveClock;
+	Color sideToMove {WHITE};
 };
 
 

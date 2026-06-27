@@ -1,14 +1,8 @@
-#include "Board.h"
+#include <iostream>
+#include <sstream>
+#include <vector>
 
-Board::Board() :
-	pieces{}, 
-	occupancy{},
-	sideToMove{ WHITE },
-	castlingRights{ NO_CASTLING },
-	enPassantSq{ SQ_NONE },
-	halfMoveClock{0},
-	fullMoveClock{ 0 } {
-}
+#include "Board.h"
 
 Board::Board(std::string FEN) : Board() {
 
@@ -95,10 +89,6 @@ Board::Board(std::string FEN) : Board() {
 	}
 	else
 		enPassantSq = SQ_NONE;
-
-	// get clocks
-	halfMoveClock = tokens[4][0] - '0';
-	fullMoveClock = tokens[5][0] - '0';
 
 	updateAllOccupancy();
 }

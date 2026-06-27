@@ -2,10 +2,6 @@
 
 namespace Engine {
 
-	// bishop and rook attack arrays
-	std::array<Bitboard, 88772> BISHOP_ATTACKS{ 0 };
-	std::array<Bitboard, 88772> ROOK_ATTACKS{ 0 };
-
 	// pawn pushes
 	template <Color side>
 	inline Bitboard pawnSinglePush(Bitboard pawns, Bitboard empty) {

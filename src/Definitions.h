@@ -4,7 +4,6 @@
 #include <cstdint>
 #include <map>
 #include <string>
-#include <vector>
 
 using Bitboard 		= uint64_t;
 using Key         	= uint64_t;

@@ -41,6 +41,11 @@ inline constexpr Square popLSB(Bitboard& b) {
 	return lsb;
 }
 
+inline constexpr Bitboard boardFromSq(Square sq) {
+
+	return 1ULL << sq;
+}
+
 // char to file/rank conversions
 inline constexpr File getFileFromChar(char c) {
 	

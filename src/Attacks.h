@@ -6,8 +6,7 @@
 constexpr Bitboard knightAttacks(Square sq) {
 
 	Bitboard res = 0ULL;
-	Bitboard cur = 0ULL;
-	setBit(cur, sq);
+	Bitboard cur = boardFromSq(sq);
 
 	res |= bitboardShift<NORTH_NORTH_EAST>(cur);
 	res |= bitboardShift<NORTH_NORTH_WEST>(cur);
@@ -24,8 +23,7 @@ constexpr Bitboard knightAttacks(Square sq) {
 constexpr Bitboard kingAttacks(Square sq) {
 
 	Bitboard res = 0ULL;
-	Bitboard cur = 0ULL;
-	setBit(cur, sq);
+	Bitboard cur = boardFromSq(sq);
 
 	res |= bitboardShift<NORTH_WEST>(cur);
 	res |= bitboardShift<NORTH>(cur);
@@ -40,31 +38,74 @@ constexpr Bitboard kingAttacks(Square sq) {
 }
 
 template<Piece p>
-constexpr Bitboard slidingAttacks(Square sq) {
+constexpr Bitboard slidingAttacks(Square sq, Bitboard occ) {
 
 	Bitboard res = 0ULL;
-	const int rank = sq / 8;
-	const int file = sq % 8;
-
+	Bitboard cur = boardFromSq(sq);
+	
 	if (p == ROOK) {
-		res |= FILES[file];
-		res |= RANKS[rank];
+
+		while (cur = bitboardShift<NORTH>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
+		cur = boardFromSq(sq);
+
+		while (cur = bitboardShift<SOUTH>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
+		cur = boardFromSq(sq);
+
+		while (cur = bitboardShift<EAST>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
+
+		cur = boardFromSq(sq);
+		while (cur = bitboardShift<WEST>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
 	}
 	else if (p == BISHOP) {
-		res |= DIAGS[7 + rank - file];
-		res |= ANTI_DIAGS[rank + file];
-	}
-	
-	// Remove edge squares from each direction, not necessary for magic bitboards
-	res &= ~RANK_1 & ~RANK_8 & ~FILE_A & ~FILE_H;
 
-	// Remove self from mask
-	resetBit(res, sq);
+		while (cur = bitboardShift<NORTH_EAST>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
+		cur = boardFromSq(sq);
+
+		while (cur = bitboardShift<NORTH_WEST>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
+		cur = boardFromSq(sq);
+
+		while (cur = bitboardShift<SOUTH_EAST>(cur)) {
+
+			res |= cur;
+			if (cur & occ) break;
+		}
+		cur = boardFromSq(sq);
+
+		while (cur = bitboardShift<SOUTH_WEST>(cur)) {
+			
+			res |= cur;
+			if (cur & occ) break;
+		}
+	}
 
 	return res;
 }
 
-inline constexpr std::array<std::array<Bitboard, SQ_COUNT>, 4> attackMasks = []() constexpr{
+inline constexpr auto attackMasks = [] () constexpr{
 
 	std::array<std::array<Bitboard, SQ_COUNT>, 4> res{};
 
@@ -72,8 +113,8 @@ inline constexpr std::array<std::array<Bitboard, SQ_COUNT>, 4> attackMasks = [](
 
 		res[0][sq] = knightAttacks(sq);
 		res[1][sq] = kingAttacks(sq);
-		res[2][sq] = slidingAttacks<BISHOP>(sq);
-		res[3][sq] = slidingAttacks<ROOK>(sq);
+		res[2][sq] = slidingAttacks<BISHOP>(sq, 0);
+		res[3][sq] = slidingAttacks<ROOK>(sq, 0);
 	}
 	return res;
 } ();
@@ -93,8 +134,7 @@ template<Direction dir>
 constexpr Bitboard computeRay(Square sq) {
 
 	Bitboard res = 0ULL;
-	Bitboard cur = 0ULL;
-	setBit(cur, sq);
+	Bitboard cur = boardFromSq(sq);
 
 	while (cur = bitboardShift<dir>(cur)) {
 		res |= cur;
@@ -129,7 +169,7 @@ constexpr Bitboard getRays(Square sq1, Square sq2) {
 }
 
 // Precomputed table for rays between all squares
-inline constexpr std::array<std::array<Bitboard, SQ_COUNT>, SQ_COUNT> RAYS = [] () constexpr{
+inline constexpr auto RAYS = [] () constexpr{
 
 	std::array<std::array<Bitboard, SQ_COUNT>, SQ_COUNT> res{};
 
@@ -142,4 +182,6 @@ inline constexpr std::array<std::array<Bitboard, SQ_COUNT>, SQ_COUNT> RAYS = [] 
 	return res;
 } ();
 
+inline std::array<Bitboard, 0x1480> BISHOP_ATTACKS;
+inline std::array<Bitboard, 0x19000> ROOK_ATTACKS;
 

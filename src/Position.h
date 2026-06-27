@@ -22,9 +22,20 @@ struct HistoryList {
 };
 
 struct CheckInfo {
+
 	Bitboard checkers = 0ULL;
 	Bitboard checkMask = 0ULL;
 	Bitboard pinned = 0ULL;
+};
+
+class Position {
+
+public:
+private:
+	Board board;
+	CheckInfo checkInfo;
+	int halfMoveClock;
+	int fullMoveClock;
 };
 
 template <Color side>
