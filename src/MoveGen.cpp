@@ -1,5 +1,6 @@
 #include "MoveGen.h"
 
+#include "Attacks.h"
 #include "Magic.h"
 
 namespace Engine {
@@ -157,8 +158,8 @@ namespace Engine {
 			
 			Square start = popLSB(knights);
 			Bitboard attacks;
-			if constexpr (captures) attacks = KNIGHT_ATTACKS[start] & enemies;
-			else attacks = KNIGHT_ATTACKS[start] & ~friends;
+			if constexpr (captures) attacks = getAttackMask<KNIGHT>(start) & enemies;
+			else attacks = getAttackMask<KNIGHT>(start) & ~friends;
 
 			while (attacks) {
 
@@ -178,8 +179,8 @@ namespace Engine {
 
 		int start = getLSB(king);
 		Bitboard attacks;
-		if constexpr (captures) attacks = KING_ATTACKS[start] & enemies;
-		else attacks = KING_ATTACKS[start] & ~friends;
+		if constexpr (captures) attacks =getAttackMask<KING>(start) & enemies;
+		else attacks = getAttackMask<KING>(start) & ~friends;
 
 		while (attacks) {
 
@@ -210,7 +211,7 @@ namespace Engine {
 	// retrieve bishop moves using magic 
 	inline Bitboard getBishopAttacks(Bitboard occ, int sq) {
 
-		occ &= getAttackMask<BISHOP>(sq);
+		occ &= BISHOP_MAGICS[sq].mask;
 		uint64_t index = BISHOP_MAGICS[sq].getIndex(occ);
 		return BISHOP_ATTACKS[index];
 	}
@@ -243,7 +244,7 @@ namespace Engine {
 	// retrieve rook moves using magic 
 	inline Bitboard getRookAttacks(Bitboard occ, int sq) {
 
-		occ &= getAttackMask<ROOK>(sq);
+		occ &= ROOK_MAGICS[sq].mask;
 		uint64_t index = ROOK_MAGICS[sq].getIndex(occ);
 		return ROOK_ATTACKS[index];
 	}
@@ -327,11 +328,11 @@ namespace Engine {
 		// calculate all attacks from the sq and see if the corresponding enemy piece is in that attack
 		attackers |= pawnLeftAttack<side, SQ_NONE>(self, enemyP);
 		attackers |= pawnRightAttack<side, SQ_NONE>(self, enemyP);
-		attackers |= KNIGHT_ATTACKS[sq] & enemyN;
+		attackers |= getAttackMask<KNIGHT>(sq) & enemyN;
 		attackers |= getBishopAttacks(board.occupancy[BOTH], sq) & enemyB;
 		attackers |= getRookAttacks(board.occupancy[BOTH], sq) & enemyR;
 		attackers |= getQueenAttacks(board.occupancy[BOTH], sq) & enemyQ;
-		attackers |= KING_ATTACKS[sq] & enemyK;
+		attackers |= getAttackMask<KING>(sq)& enemyK;
 
 		return attackers;
 	}

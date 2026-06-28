@@ -6,7 +6,7 @@ namespace Engine {
 
     void uciLoop() {
 
-        Board board;
+        Position position;
         std::string input, token;
 
         while (std::getline(std::cin, input)) {
@@ -26,7 +26,7 @@ namespace Engine {
             }
             else if (token == "ucinewgame") {
 
-                board = Board(startpos);
+                position.board = Board(startpos);
             }
             else if (token == "position") {
 
@@ -34,7 +34,7 @@ namespace Engine {
 
                 if (token == "startpos") {
 
-                    board = Board(startpos);
+                    position.board = Board(startpos);
                     iss >> token; // remove moves from stream
                 }
                 else if (token == "fen") {
@@ -44,14 +44,14 @@ namespace Engine {
                         fen += token + " ";
                     }
 
-                    board = Board(fen);
+                    position.board = Board(fen);
                 }
  
                 while (iss >> token) {
 
                     History h;
-                    Move move = convertMoveFromString(board, token);
-                    makeMove(move, board, h);
+                    Move move = convertMoveFromString(position.board, token);
+                    makeMove(move, position, h);
                 }
             }
             else if (token == "go") {
@@ -64,17 +64,17 @@ namespace Engine {
                 }
 
                 uint64_t nodes = 0;
-                Move bestMove = getBestMove(board, depth, nodes, false);
+                Move bestMove = getBestMove(position, depth, nodes, false);
                 std::cout << "bestmove " << convertMoveToString(bestMove) << std::endl;
             }
             else if (token == "play") {
                 iss >> token;
                 History h;
-                Move move = convertMoveFromString(board, token);
-                makeMove(move, board, h);
+                Move move = convertMoveFromString(position.board, token);
+                makeMove(move, position, h);
             }
             else if (token == "d") {
-                board.printBoard();
+                position.board.printBoard();
             }
             else if (token == "quit") {
 

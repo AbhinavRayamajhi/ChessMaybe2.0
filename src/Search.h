@@ -10,15 +10,15 @@ const int QUIESCENCE_DEPTH = 4;
 
 namespace Engine {
 
-	inline int quiescenceSearch(Board& board, int alpha, int beta, int depth) {
+	inline int quiescenceSearch(Position& position, int alpha, int beta, int depth) {
 
-		if (depth == 0) return evaluate(board);
+		if (depth == 0) return evaluate(position.board);
 
 		MoveList moveList;
 
-		if (isKingInCheck(board)) {
+		if (isKingInCheck(position.board)) {
 
-			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
+			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
 
 			if (moveList.end == 0) {
 
@@ -27,10 +27,10 @@ namespace Engine {
 		}
 		else {
 
-			int standPat = evaluate(board);
+			int standPat = evaluate(position.board);
 			if (standPat >= beta) return beta;
 			if (standPat > alpha) alpha = standPat;
-			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_TRUE>(board, moveList);
+			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_TRUE>(position.board, moveList);
 		}
 
 		for (int i = 0; i < moveList.end; ++i) {
@@ -47,9 +47,9 @@ namespace Engine {
 			moveList.swapMoveScore(i, bestInd);
 
 			History h;
-			makeMove(moveList.list[i], board, h);
-			int score = -quiescenceSearch(board, -beta, -alpha, depth - 1);
-			unmakeMove(board, h);
+			makeMove(moveList.list[i], position, h);
+			int score = -quiescenceSearch(position, -beta, -alpha, depth - 1);
+			unmakeMove(position, h);
 
 			if (score >= beta) return beta;
 			if (score > alpha) alpha = score;
@@ -58,10 +58,10 @@ namespace Engine {
 		return alpha;
 	}
 
-	inline int search(Board& board, int depth, int alpha, int beta, uint64_t& nodes) {
+	inline int search(Position& position, int depth, int alpha, int beta, uint64_t& nodes) {
 
 		if (depth == 0) {
-			return quiescenceSearch(board, alpha, beta, QUIESCENCE_DEPTH);
+			return quiescenceSearch(position, alpha, beta, QUIESCENCE_DEPTH);
 		}
 
 		// Mate distance pruning
@@ -71,11 +71,11 @@ namespace Engine {
 		if (alpha >= beta) return alpha;            
 
 		MoveList moveList;
-		generateLegalMoves <SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
+		generateLegalMoves <SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
 
 		if (moveList.end == 0) {
 
-			if (isKingInCheck(board)) {
+			if (isKingInCheck(position.board)) {
 				return -(INF + depth);
 			}
 			else {
@@ -97,9 +97,9 @@ namespace Engine {
 			moveList.swapMoveScore(i, bestInd);
 
 			History h;
-			makeMove(moveList.list[i], board, h);
-			int score = -search(board, depth - 1, -beta, -alpha, nodes);
-			unmakeMove(board, h);
+			makeMove(moveList.list[i], position, h);
+			int score = -search(position, depth - 1, -beta, -alpha, nodes);
+			unmakeMove(position, h);
 
 			nodes++;
 
@@ -114,10 +114,10 @@ namespace Engine {
 		return alpha;
 	}
 
-	inline int getBestMove(Board& board, const int MAX_DEPTH, uint64_t& nodes, bool debug) {
+	inline int getBestMove(Position& position, const int MAX_DEPTH, uint64_t& nodes, bool debug) {
 
 		MoveList moveList;
-		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(board, moveList);
+		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
 
 		if (moveList.end == 0) {
 		// no legal moves - checkmate or stalemate
@@ -148,9 +148,9 @@ namespace Engine {
 				}
 
 				History h;
-				makeMove(moveList.list[i], board, h);
-				int currentScore = -search(board, depth - 1, -beta, -bestScore, nodes);
-				unmakeMove(board, h);
+				makeMove(moveList.list[i], position, h);
+				int currentScore = -search(position, depth - 1, -beta, -bestScore, nodes);
+				unmakeMove(position, h);
 
 
 				nodes++;

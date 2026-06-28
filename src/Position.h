@@ -28,10 +28,8 @@ struct CheckInfo {
 	Bitboard pinned = 0ULL;
 };
 
-class Position {
+struct Position {
 
-public:
-private:
 	Board board;
 	CheckInfo checkInfo;
 	std::array<Piece, SQ_COUNT> pieceSq;
@@ -40,29 +38,30 @@ private:
 };
 
 template <Color side>
-__attribute__((always_inline)) inline void makeMoveT(int move, Board& board, History& history) {
+__attribute__((always_inline)) inline void makeMoveT(int move, Position& position, History& history) {
 
 	Square start = getStartSq(move);
 	Square target = getTargetSq(move);
 	MoveType moveType = getMoveType(move);
 
 	history.move = move;
-    history.enPassantSq = board.enPassantSq;
-    history.castlingRights = board.castlingRights;
-	history.halfMoveClock = board.halfMoveClock;
-	board.enPassantSq = SQ_NONE;
+    history.enPassantSq = position.board.enPassantSq;
+    history.castlingRights = position.board.castlingRights;
+	history.halfMoveClock = position.halfMoveClock;
+
+	position.board.enPassantSq = SQ_NONE;
 
 	// set castling right to false if not moved rook is target
 	switch (target) {
 		
 		case H1:
-			board.castlingRights &= ~WHITE_OO; break;
+			position.board.castlingRights &= ~WHITE_OO; break;
 		case A1:
-			board.castlingRights &= ~WHITE_OOO; break;
+			position.board.castlingRights &= ~WHITE_OOO; break;
 		case H8:
-			board.castlingRights &= ~BLACK_OO; break;
+			position.board.castlingRights &= ~BLACK_OO; break;
 		case A8:
-			board.castlingRights &= ~BLACK_OOO; break;
+			position.board.castlingRights &= ~BLACK_OOO; break;
 		default: break;
 	}
 
@@ -70,47 +69,47 @@ __attribute__((always_inline)) inline void makeMoveT(int move, Board& board, His
 	switch (start) {
 		
 		case H1:
-			board.castlingRights &= ~WHITE_OO; break;
+			position.board.castlingRights &= ~WHITE_OO; break;
 		case A1:
-			board.castlingRights &= ~WHITE_OOO; break;
+			position.board.castlingRights &= ~WHITE_OOO; break;
 		case H8:
-			board.castlingRights &= ~BLACK_OO; break;
+			position.board.castlingRights &= ~BLACK_OO; break;
 		case A8:
-			board.castlingRights &= ~BLACK_OOO; break;
+			position.board.castlingRights &= ~BLACK_OOO; break;
 		default: break;
 	}
 
-	history.moved = board.findPiece<side>(start);
+	history.moved = position.board.findPiece<side>(start);
 	if (history.moved == PAWN) {
 
 		// set en passant sq if double push
-		if (start + 16 == target) board.enPassantSq = start + 8;
-		else if (start - 16 == target) board.enPassantSq = start - 8;
+		if (start + 16 == target) position.board.enPassantSq = start + 8;
+		else if (start - 16 == target) position.board.enPassantSq = start - 8;
 
 		// reset half move clock since pawn move
-		board.halfMoveClock = 0;
+		position.halfMoveClock = 0;
 	}
 	// king move cancels all castling
 	else if (history.moved == KING) {
 
-		board.castlingRights &= (side == WHITE) ? ~WHITE_CASTLE : ~BLACK_CASTLE;
+		position.board.castlingRights &= (side == WHITE) ? ~WHITE_CASTLE : ~BLACK_CASTLE;
 	}
 
-	history.captured = board.findPiece<!side>(target);
+	history.captured = position.board.findPiece<!side>(target);
 	if (history.captured != PIECE_NONE) {
 
 		// reset half move clock since capture
-		board.halfMoveClock = 0;
-		board.removePiece<!side>(history.captured, target);
+		position.halfMoveClock = 0;
+		position.board.removePiece<!side>(history.captured, target);
 	}
 
 	// move the piece
-	board.movePiece<side>(history.moved, start, target);
+	position.board.movePiece<side>(history.moved, start, target);
 
 	// if enPassant capture remove the captured piece
 	if (moveType == ENPASSANT) {
 
-		board.removePiece<!side>(PAWN, target + (side == WHITE ? -8 : 8));
+		position.board.removePiece<!side>(PAWN, target + (side == WHITE ? -8 : 8));
         history.captured = PAWN;
 	}
 
@@ -118,8 +117,8 @@ __attribute__((always_inline)) inline void makeMoveT(int move, Board& board, His
 	else if (moveType == PROMOTION) {
 
 		// remove moved pawn and add promotion piece
-		board.removePiece<side>(PAWN, target);
-		board.addPiece<side>(getPromotionPiece(move), target);
+		position.board.removePiece<side>(PAWN, target);
+		position.board.addPiece<side>(getPromotionPiece(move), target);
 	}
 	else if (moveType == CASTLING) {
 
@@ -140,28 +139,28 @@ __attribute__((always_inline)) inline void makeMoveT(int move, Board& board, His
             rookFrom = A8;
             rookTo = D8;
         }
-		board.movePiece<side>(ROOK, rookFrom, rookTo);
+		position.board.movePiece<side>(ROOK, rookFrom, rookTo);
 	}
 
-	board.updateCombinedOccupancy();
-	board.sideToMove = (side == WHITE) ? BLACK : WHITE;
+	position.board.updateCombinedOccupancy();
+	position.board.sideToMove = (side == WHITE) ? BLACK : WHITE;
 }
 
 template <Color side>
-__attribute__((always_inline)) inline void unmakeMoveT(Board& board, History& history)
+__attribute__((always_inline)) inline void unmakeMoveT(Position& position, History& history)
 {
 	Square start = getStartSq(history.move);
 	Square target = getTargetSq(history.move);
 	MoveType moveType = getMoveType(history.move);
 
-    board.enPassantSq = history.enPassantSq;
-    board.castlingRights = history.castlingRights;
-    board.halfMoveClock = history.halfMoveClock;
+    position.board.enPassantSq = history.enPassantSq;
+    position.board.castlingRights = history.castlingRights;
+    position.halfMoveClock = history.halfMoveClock;
 
     if (moveType == PROMOTION) {
 
-		board.removePiece<!side>(board.findPiece<!side>(target), target);
-		board.addPiece<!side>(PAWN, start);
+		position.board.removePiece<!side>(position.board.findPiece<!side>(target), target);
+		position.board.addPiece<!side>(PAWN, start);
     }
     else if (moveType == CASTLING) {
 
@@ -183,26 +182,26 @@ __attribute__((always_inline)) inline void unmakeMoveT(Board& board, History& hi
             rookTo = A8;
         }
 
-		board.movePiece<!side>(ROOK, rookFrom, rookTo);
-		board.movePiece<!side>(KING, target, start);
+		position.board.movePiece<!side>(ROOK, rookFrom, rookTo);
+		position.board.movePiece<!side>(KING, target, start);
     }
 	else {
-		board.movePiece<!side>(history.moved, target, start);
+		position.board.movePiece<!side>(history.moved, target, start);
 	}
 
     if (history.captured != PIECE_NONE) {
 
 		if (moveType != ENPASSANT) {
-			board.addPiece<side>(history.captured, target);
+			position.board.addPiece<side>(history.captured, target);
         }
 		else {
-			board.addPiece<side>(PAWN, target + (side == WHITE ? 8 : -8));
+			position.board.addPiece<side>(PAWN, target + (side == WHITE ? 8 : -8));
         }
     }
 
-	board.updateCombinedOccupancy();
-    board.sideToMove = side == WHITE ? BLACK : WHITE;
+	position.board.updateCombinedOccupancy();
+    position.board.sideToMove = side == WHITE ? BLACK : WHITE;
 }
 
-void makeMove(int move, Board& board, History& history);
-void unmakeMove(Board& board, History& history);
+void makeMove(int move, Position& position, History& history);
+void unmakeMove(Position& position, History& history);

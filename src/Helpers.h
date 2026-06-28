@@ -49,7 +49,7 @@ inline constexpr Bitboard boardFromSq(Square sq) {
 // char to file/rank conversions
 inline constexpr File getFileFromChar(char c) {
 	
-	return fileToInt.at(c);
+	return c - 'a';
 }
 
 inline constexpr Rank getRankFromChar(char c) {
@@ -92,10 +92,10 @@ inline Square stringToSquare(std::string s) {
 
 inline void printBitboard(Bitboard bb) {
 	
-	for (Rank rank = 7; rank >= 0; --rank) {
+	for (int rank = 7; rank >= 0; --rank) {
 
 		std::cout << rank + 1 << "  ";
-		for (File file = 0; file < 8; ++file) {
+		for (int file = 0; file < 8; ++file) {
 			
 			Square sq = getSquareFromRF(rank, file);
 			std::cout << (((bb >> sq) & 1ULL) ? '1' : '0') << " ";

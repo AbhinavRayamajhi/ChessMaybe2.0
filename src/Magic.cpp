@@ -49,7 +49,7 @@ namespace Engine {
         ROOK_MAGICS[sq].magic = 0;
         ROOK_MAGICS[sq].offset = sq == 0 ? 0 : ROOK_MAGICS[sq - 1].offset + std::pow(2, ROOK_MAGICS[sq - 1].shift);
         ROOK_MAGICS[sq].shift = static_cast<uint8_t>(popCount(ROOK_MAGICS[sq].mask));
-        
+
         bool found = false;
 
         while (!found) {

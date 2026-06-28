@@ -40,6 +40,7 @@ namespace Engine {
 		uint8_t shift{};
 
 		inline uint64_t getIndex(Bitboard subset) {
+			//printBitboard(subset);
 			return offset + ((subset * magic) >> (64 - shift));
 		}
 	};

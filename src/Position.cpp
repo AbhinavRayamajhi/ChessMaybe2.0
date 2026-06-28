@@ -1,22 +1,22 @@
 #include "Position.h"
 
 
-void makeMove(int move, Board& board, History& history) {
+void makeMove(int move, Position& position, History& history) {
 
-	if (board.sideToMove == WHITE) {
-		makeMoveT<WHITE>(move, board, history);
+	if (position.board.sideToMove == WHITE) {
+		makeMoveT<WHITE>(move, position, history);
 	}
 	else {
-		makeMoveT<BLACK>(move, board, history);
+		makeMoveT<BLACK>(move, position, history);
 	}
 }
 
-void unmakeMove(Board& board, History& history) {
+void unmakeMove(Position& position, History& history) {
 
-	if (board.sideToMove == WHITE) {
-		unmakeMoveT<WHITE>(board, history);
+	if (position.board.sideToMove == WHITE) {
+		unmakeMoveT<WHITE>(position, history);
 	}
 	else {
-		unmakeMoveT<BLACK>(board, history);
+		unmakeMoveT<BLACK>(position, history);
 	}
 }

@@ -45,28 +45,28 @@ constexpr Bitboard slidingAttacks(Square sq, Bitboard occ) {
 	
 	if (p == ROOK) {
 
-		while (cur = bitboardShift<NORTH>(cur)) {
+		while ((cur = bitboardShift<NORTH>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
 		}
 		cur = boardFromSq(sq);
 
-		while (cur = bitboardShift<SOUTH>(cur)) {
+		while ((cur = bitboardShift<SOUTH>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
 		}
 		cur = boardFromSq(sq);
 
-		while (cur = bitboardShift<EAST>(cur)) {
+		while ((cur = bitboardShift<EAST>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
 		}
 
 		cur = boardFromSq(sq);
-		while (cur = bitboardShift<WEST>(cur)) {
+		while ((cur = bitboardShift<WEST>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
@@ -74,28 +74,28 @@ constexpr Bitboard slidingAttacks(Square sq, Bitboard occ) {
 	}
 	else if (p == BISHOP) {
 
-		while (cur = bitboardShift<NORTH_EAST>(cur)) {
+		while ((cur = bitboardShift<NORTH_EAST>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
 		}
 		cur = boardFromSq(sq);
 
-		while (cur = bitboardShift<NORTH_WEST>(cur)) {
+		while ((cur = bitboardShift<NORTH_WEST>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
 		}
 		cur = boardFromSq(sq);
 
-		while (cur = bitboardShift<SOUTH_EAST>(cur)) {
+		while ((cur = bitboardShift<SOUTH_EAST>(cur))) {
 
 			res |= cur;
 			if (cur & occ) break;
 		}
 		cur = boardFromSq(sq);
 
-		while (cur = bitboardShift<SOUTH_WEST>(cur)) {
+		while ((cur = bitboardShift<SOUTH_WEST>(cur))) {
 			
 			res |= cur;
 			if (cur & occ) break;
@@ -136,7 +136,7 @@ constexpr Bitboard computeRay(Square sq) {
 	Bitboard res = 0ULL;
 	Bitboard cur = boardFromSq(sq);
 
-	while (cur = bitboardShift<dir>(cur)) {
+	while ((cur = bitboardShift<dir>(cur))) {
 		res |= cur;
 	}
 
