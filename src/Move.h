@@ -43,7 +43,7 @@ inline Move convertMoveFromString(const Board& board, std::string input) {
 
 	if (input.length() == 5) {
 		moveType = PROMOTION;
-		promPiece = promotionMap.at(input[4]);
+		promPiece = promotionMap.at(input[4]) - 1;
 	}
 	else if (target == board.enPassantSq) {
 		moveType = ENPASSANT;
@@ -76,21 +76,6 @@ inline void printMove(Move move) {
 	std::cout << convertMoveToString(move);
 }
 
-inline void printMoveList(Move moveList[]) {
-
-	std::cout << "Possible Moves: " << '\n';
-	for (int i = 0; i < 256; ++i) {
-
-		if (moveList[i] == 0) {
-			break;
-		}
-
-		printMove(moveList[i]);
-		std::cout << ", ";
-	}
-	std::cout << "\n\n";
-}
-
 struct MoveList {
 	std::array<Move, 256> list;
 	std::array<int, 256> score;
@@ -112,5 +97,20 @@ struct MoveList {
 	inline void swapMoveScore(int index, int bestIndex) {
 		std::swap(list[index], list[bestIndex]);
     	std::swap(score[index], score[bestIndex]);
+	}
+
+	inline void printMoveList() {
+
+		std::cout << "Possible Moves: " << '\n';
+		for (int i = 0; i < end; ++i) {
+
+			if (list[i] == 0) {
+				break;
+			}
+
+			printMove(list[i]);
+			std::cout << ", ";
+		}
+		std::cout << "\n\n";
 	}
 };

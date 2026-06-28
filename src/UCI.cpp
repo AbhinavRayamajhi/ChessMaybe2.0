@@ -1,5 +1,6 @@
 #include "UCI.h"
 
+#include <fstream>
 #include <sstream>
 
 namespace Engine {
@@ -11,6 +12,9 @@ namespace Engine {
 
         while (std::getline(std::cin, input)) {
 
+            std::ofstream log("uci_log.txt", std::ios::app);
+            log << input << "\n";
+            log.flush();
             std::istringstream iss(input);
             iss >> token;
 

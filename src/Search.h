@@ -120,10 +120,10 @@ namespace Engine {
 		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
 
 		if (moveList.end == 0) {
-		// no legal moves - checkmate or stalemate
-		std::cout << "bestmove 0000\n" << std::flush;
-		return 0;
-}
+			// no legal moves - checkmate or stalemate
+			std::cout << "bestmove 0000\n" << std::flush;
+			return 0;
+		}
 
 		int bestMove = moveList.list[0];
 		int beta = INT32_MAX;

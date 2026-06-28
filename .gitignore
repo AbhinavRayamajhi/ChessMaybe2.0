@@ -11,6 +11,8 @@
 *.sln.docstates
 *.git
 *.vscode
+input.txt
+uci_log.txt
 
 
 # User-specific files (MonoDevelop/Xamarin Studio)
