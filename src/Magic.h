@@ -38,10 +38,14 @@ namespace Engine {
 		Bitboard magic{};
 		uint32_t offset{};
 		uint8_t shift{};
+
+		inline uint64_t getIndex(Bitboard subset) {
+			return offset + ((subset * magic) >> (64 - shift));
+		}
 	};
 
 	inline std::array<Magic, 64> BISHOP_MAGICS{};
 	inline std::array<Magic, 64> ROOK_MAGICS{};
 
-	void init_Magics();
+	void initMagics();
 }

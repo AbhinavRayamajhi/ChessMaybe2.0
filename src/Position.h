@@ -34,6 +34,7 @@ public:
 private:
 	Board board;
 	CheckInfo checkInfo;
+	std::array<Piece, SQ_COUNT> pieceSq;
 	int halfMoveClock;
 	int fullMoveClock;
 };

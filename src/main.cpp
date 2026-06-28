@@ -12,7 +12,7 @@
 
 int main() {
 
-	Engine::computeSliderAttack();
+	Engine::initMagics();
 	Engine::uciLoop();
 	return 0;
 }

@@ -1,5 +1,7 @@
 #include "MoveGen.h"
 
+#include "Magic.h"
+
 namespace Engine {
 
 	// pawn pushes
@@ -70,7 +72,7 @@ namespace Engine {
 				start = target - (side== WHITE ? 8 : -8);
 
 				// promotion check
-				if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
+				if (getRankFromSquare(target) == 0 || getRankFromSquare(target) == 7) {
 					moveList.addMove(createMove(start, target, QUEEN, PROMOTION));
 					moveList.addMove(createMove(start, target, ROOK, PROMOTION));
 					moveList.addMove(createMove(start, target, BISHOP, PROMOTION));
@@ -99,7 +101,7 @@ namespace Engine {
 			start = target - (side == WHITE ? 7 : -9);
 
 			// promotion check
-			if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
+			if (getRankFromSquare(target) == 0 || getRankFromSquare(target) == 7) {
 
 				moveList.addMove(createMove(start, target, QUEEN, PROMOTION));
 				moveList.addMove(createMove(start, target, ROOK, PROMOTION));
@@ -124,7 +126,7 @@ namespace Engine {
 			start = target - (side == WHITE ? 9 : -7);
 
 			// promotion check
-			if (getRankFromInt(target) == 0 || getRankFromInt(target) == 7) {
+			if (getRankFromSquare(target) == 0 || getRankFromSquare(target) == 7) {
 
 				moveList.addMove(createMove(start, target, QUEEN, PROMOTION));
 				moveList.addMove(createMove(start, target, ROOK, PROMOTION));
@@ -208,8 +210,8 @@ namespace Engine {
 	// retrieve bishop moves using magic 
 	inline Bitboard getBishopAttacks(Bitboard occ, int sq) {
 
-		occ &= BISHOP_MASKS[sq];
-		uint64_t index = ((occ * BISHOP_MAGICS[sq]) >> 55) + BISHOP_OFFSETS[sq];
+		occ &= getAttackMask<BISHOP>(sq);
+		uint64_t index = BISHOP_MAGICS[sq].getIndex(occ);
 		return BISHOP_ATTACKS[index];
 	}
 
@@ -241,8 +243,8 @@ namespace Engine {
 	// retrieve rook moves using magic 
 	inline Bitboard getRookAttacks(Bitboard occ, int sq) {
 
-		occ &= ROOK_MASKS[sq];
-		uint64_t index = ((occ * ROOK_MAGICS[sq]) >> 52) + ROOK_OFFSETS[sq];
+		occ &= getAttackMask<ROOK>(sq);
+		uint64_t index = ROOK_MAGICS[sq].getIndex(occ);
 		return ROOK_ATTACKS[index];
 	}
 

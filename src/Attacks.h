@@ -182,6 +182,6 @@ inline constexpr auto RAYS = [] () constexpr{
 	return res;
 } ();
 
-inline std::array<Bitboard, 0x1480> BISHOP_ATTACKS;
-inline std::array<Bitboard, 0x19000> ROOK_ATTACKS;
+inline std::array<Bitboard, 0x1480> BISHOP_ATTACKS{};
+inline std::array<Bitboard, 0x19000> ROOK_ATTACKS{};
 

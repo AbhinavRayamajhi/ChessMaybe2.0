@@ -1,5 +1,7 @@
 #include "UCI.h"
 
+#include <sstream>
+
 namespace Engine {
 
     void uciLoop() {
