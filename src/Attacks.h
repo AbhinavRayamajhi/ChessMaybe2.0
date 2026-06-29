@@ -185,3 +185,54 @@ inline constexpr auto RAYS = [] () constexpr{
 inline std::array<Bitboard, 0x1480> BISHOP_ATTACKS{};
 inline std::array<Bitboard, 0x19000> ROOK_ATTACKS{};
 
+// pawn pushes
+template <Color side>
+inline Bitboard pawnSinglePush(Bitboard pawns, Bitboard empty) {
+
+	if (side == WHITE)
+		return bitboardShift<NORTH>(pawns) & empty;
+	else
+		return bitboardShift<SOUTH>(pawns) & empty;
+}
+
+template <Color side>
+inline Bitboard pawnDoublePush(Bitboard pawns, Bitboard empty) {
+
+	if (side == WHITE) {
+
+		pawns = pawnSinglePush<WHITE>(pawns & RANK_2, empty); // only rank 2 white pawns can have double push
+		return bitboardShift<NORTH>(pawns) & empty;
+	}
+	else {
+
+		pawns = pawnSinglePush<BLACK>(pawns & RANK_7, empty); // only rank 7 black pawns
+		return bitboardShift<SOUTH>(pawns) & empty;
+	}
+}
+
+// pawn attacks
+template <Color side, Square epSq>
+inline Bitboard pawnLeftAttack(Bitboard pawns, Bitboard enemy) {
+
+	// set enPassantSq in enemy to 1 so pawns can attack it
+	if (epSq != SQ_NONE) setBit(enemy, epSq);
+
+	if (side == WHITE)
+		return bitboardShift<NORTH_WEST>(pawns) & enemy;
+	else
+		return bitboardShift<SOUTH_WEST>(pawns) & enemy;
+}
+
+template <Color side, Square epSq>
+inline Bitboard pawnRightAttack(Bitboard pawns, Bitboard enemy) {
+
+	// set enPassantSq in enemy to 1 so pawns can attack it
+	if (epSq != SQ_NONE) setBit(enemy, epSq);
+
+	if (side == WHITE)
+		return bitboardShift<NORTH_EAST>(pawns) & enemy;
+	else
+		return bitboardShift<SOUTH_EAST>(pawns) & enemy;
+}
+
+

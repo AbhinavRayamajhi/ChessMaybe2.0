@@ -15,8 +15,8 @@ int main() {
 
 	Engine::initMagics();
 
-	Engine::uciLoop();
-	// Engine::testSuite();
+	//Engine::uciLoop();
+	Engine::testSuite();
 #if 0
 	// search
 	int depth = 7;

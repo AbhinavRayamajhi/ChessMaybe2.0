@@ -49,4 +49,25 @@ namespace Engine {
 	inline std::array<Magic, 64> ROOK_MAGICS{};
 
 	void initMagics();
+
+	// retrieve bishop moves using magic 
+	inline Bitboard getBishopAttacks(Bitboard occ, int sq) {
+
+		occ &= BISHOP_MAGICS[sq].mask;
+		uint64_t index = BISHOP_MAGICS[sq].getIndex(occ);
+		return BISHOP_ATTACKS[index];
+	}
+
+	// retrieve rook moves using magic 
+	inline Bitboard getRookAttacks(Bitboard occ, int sq) {
+
+		occ &= ROOK_MAGICS[sq].mask;
+		uint64_t index = ROOK_MAGICS[sq].getIndex(occ);
+		return ROOK_ATTACKS[index];
+	}
+
+	// retrieve queen moves from rook and bishop 
+	inline Bitboard getQueenAttacks(Bitboard occ, int sq) {
+		return getRookAttacks(occ, sq) | getBishopAttacks(occ, sq);
+	}
 }

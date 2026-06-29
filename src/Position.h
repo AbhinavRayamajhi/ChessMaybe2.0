@@ -28,8 +28,59 @@ struct CheckInfo {
 	Bitboard pinned = 0ULL;
 };
 
-struct Position {
+class Position {
+public:
+	
+	template<Color side, Piece p>
+	inline Bitboard getPiece() const {
 
+		return board.pieces[side][p];
+	}
+
+	template<Color side>
+	inline Bitboard getOccupancy() const {
+
+		return board.occupancy[side];
+	}
+
+	inline Bitboard getBothOccupancy() const {
+
+		return board.occupancy[BOTH];
+	}
+
+	inline Bitboard getEmpty() const {
+
+		return ~board.occupancy[BOTH];
+	}
+
+	inline Color side() const {
+
+		return board.sideToMove;
+	}
+
+	// checks if a particular square is being attacked by enemy pieces
+	template <Color side>
+	Bitboard squareAttackers(Square sq);
+
+	// checks if king is being attacked by enemy pieces
+	inline Bitboard isKingInCheck() {
+
+		if (board.sideToMove == WHITE) {
+			Square kSq = getLSB(board.pieces[WHITE][KING]);
+			return squareAttackers<WHITE>(kSq);
+		}
+		else {
+			Square kSq = getLSB(board.pieces[BLACK][KING]);
+			return squareAttackers<BLACK>(kSq);
+		}
+	}
+
+	// calculates check info, pinned pieces, checkers and check masks
+	template <Color side>
+	void getCheckInfo();
+
+private:
+	
 	Board board;
 	CheckInfo checkInfo;
 	std::array<Piece, SQ_COUNT> pieceSq;
