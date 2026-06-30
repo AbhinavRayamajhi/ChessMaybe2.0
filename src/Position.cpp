@@ -1,92 +1,170 @@
 #include "Position.h"
 
+
 template <Color side>
-Bitboard Position::squareAttackers(Square sq) {
+__attribute__((always_inline)) inline void makeMoveT(int move, Position& position, History& history) {
 
-	Bitboard attackers = 0ULL;
-	Bitboard self = 1ULL << sq;
+	Square start = getStartSq(move);
+	Square target = getTargetSq(move);
+	MoveType moveType = getMoveType(move);
 
-	// calculate all attacks from the sq and see if the corresponding enemy piece is in that attack
-	attackers |= pawnLeftAttack<side, SQ_NONE>(self, board.pieces[!side][PAWN]);
-	attackers |= pawnRightAttack<side, SQ_NONE>(self, board.pieces[!side][PAWN]);
-	attackers |= getAttackMask<KNIGHT>(sq) & board.pieces[!side][KNIGHT];
-	attackers |= getBishopAttacks(board.occupancy[BOTH], sq) & board.pieces[!side][BISHOP];
-	attackers |= getRookAttacks(board.occupancy[BOTH], sq) & board.pieces[!side][ROOK];
-	attackers |= getQueenAttacks(board.occupancy[BOTH], sq) & board.pieces[!side][QUEEN];
-	attackers |= getAttackMask<KING>(sq)& board.pieces[!side][KING];
+	history.move = move;
+    history.enPassantSq = position.epSq();
+    history.castlingRights = position.cr();
+	history.halfMoveClock = position.hclock();
 
-	return attackers;
+	position.setEpSq(SQ_NONE);
+
+	// set castling right to false if not moved rook is target
+	switch (target) {
+		
+		case H1:
+			position.setCastlingRights(history.castlingRights & WHITE_OO); break;
+		case A1:
+			position.setCastlingRights(history.castlingRights & WHITE_OOO); break;
+		case H8:
+			position.setCastlingRights(history.castlingRights & BLACK_OO); break;
+		case A8:
+			position.setCastlingRights(history.castlingRights & BLACK_OOO); break;
+		default: break;
+	}
+
+	// set castling right to false if anything moves from rook sq
+	switch (start) {
+		
+		case H1:
+			position.setCastlingRights(history.castlingRights & WHITE_OO); break;
+		case A1:
+			position.setCastlingRights(history.castlingRights & WHITE_OOO); break;
+		case H8:
+			position.setCastlingRights(history.castlingRights & BLACK_OO); break;
+		case A8:
+			position.setCastlingRights(history.castlingRights & BLACK_OOO); break;
+		default: break;
+	}
+
+	history.moved = position.findPiece<side>(start);
+	if (history.moved == PAWN) {
+
+		// set en passant sq if double push
+		if (start + 16 == target) position.setEpSq(start + 8);
+		else if (start - 16 == target) position.setEpSq(start - 8);
+
+		// reset half move clock since pawn move
+		position.setHalfMoveClock(0);
+	}
+	// king move cancels all castling
+	else if (history.moved == KING) {
+
+		position.setCastlingRights(position.cr() & ((side == WHITE) ? ~WHITE_CASTLE : ~BLACK_CASTLE));
+	}
+
+	history.captured = position.findPiece<!side>(target);
+	if (history.captured != PIECE_NONE) {
+
+		// reset half move clock since capture
+		position.setHalfMoveClock(0);
+		position.removePiece<!side>(history.captured, target);
+	}
+
+	// move the piece
+	position.movePiece<side>(history.moved, start, target);
+
+	// if enPassant capture remove the captured piece
+	if (moveType == ENPASSANT) {
+
+		position.removePiece<!side>(PAWN, target + (side == WHITE ? -8 : 8));
+        history.captured = PAWN;
+	}
+
+	// if promotion piece set the relevant bit to promoted piece
+	else if (moveType == PROMOTION) {
+
+		// remove moved pawn and add promotion piece
+		position.removePiece<side>(PAWN, target);
+		position.addPiece<side>(getPromotionPiece(move), target);
+	}
+	else if (moveType == CASTLING) {
+
+		Square rookFrom, rookTo;
+        if (target == G1) {
+            rookFrom = H1;
+            rookTo = F1;
+        }
+        else if (target == G8) {
+            rookFrom = H8;
+            rookTo = F8;
+        }
+        else if (target == C1) {
+            rookFrom = A1;
+            rookTo = D1;
+        }
+        else {
+            rookFrom = A8;
+            rookTo = D8;
+        }
+		position.movePiece<side>(ROOK, rookFrom, rookTo);
+	}
+
+	position.updateCombinedOccupancy();
+	position.flipSide();
 }
 
 template <Color side>
-void Position::getCheckInfo() {
+__attribute__((always_inline)) inline void unmakeMoveT(Position& position, History& history)
+{
+	Square start = getStartSq(history.move);
+	Square target = getTargetSq(history.move);
+	MoveType moveType = getMoveType(history.move);
 
-	Bitboard occ = board.occupancy[BOTH];
+    position.setEpSq(history.enPassantSq);
+    position.setCastlingRights(history.castlingRights);
+    position.setHalfMoveClock(history.halfMoveClock);
 
-	Square kSq            = getLSB(board.pieces[side][KING]);
-	Bitboard enemyB       = board.pieces[!side][BISHOP];
-	Bitboard enemyR       = board.pieces[!side][ROOK];
-	Bitboard enemyQ       = board.pieces[!side][QUEEN];
-	Bitboard friends      = board.occupancy[side];
-	Bitboard enemySliders = enemyB | enemyR | enemyQ;
+    if (moveType == PROMOTION) {
 
-	// checkers are all pieces attacking the king currently
-	checkInfo.checkers = squareAttackers<side>(kSq);
+		position.removePiece<!side>(position.findPiece<!side>(target), target);
+		position.addPiece<!side>(PAWN, start);
+    }
+    else if (moveType == CASTLING) {
 
-	Bitboard rookAttacks = getRookAttacks(occ, kSq);
-	Bitboard bishopAttacks = getBishopAttacks(occ, kSq);
+        Square rookFrom, rookTo;
+        if (target == G1) {
+            rookFrom = F1;
+            rookTo = H1;
+        }
+        else if (target == G8) {
+            rookFrom = F8;
+            rookTo = H8;
+        }
+        else if (target == C1) {
+            rookFrom = D1;
+            rookTo = A1;
+        }
+        else {
+            rookFrom = D8;
+            rookTo = A8;
+        }
 
-	// get rid of any friendly piece in the rook rays from king sq and calculate again
-	rookAttacks &= friends;
-	occ ^= rookAttacks;
-	rookAttacks = getRookAttacks(occ, kSq);
-
-	// find enemy pinners if any
-	rookAttacks &= enemyQ | enemyR;
-
-	while (rookAttacks) {
-		Square pinSq = popLSB(rookAttacks);
-		checkInfo.pinned |= getRaysBetweenSquare(kSq, pinSq) & friends;
-	}
-
-	occ = board.occupancy[BOTH];
-
-	// get rid of any friendly piece in the bishop rays from king sq and calculate again
-	bishopAttacks &= friends;
-	occ ^= bishopAttacks;
-	bishopAttacks = getBishopAttacks(occ, kSq);
-
-	// find enemy pinners if any
-	bishopAttacks &= enemyQ | enemyB;
-
-	while (bishopAttacks) {
-		Square pinSq = popLSB(bishopAttacks);
-		checkInfo.pinned |= getRaysBetweenSquare(kSq, pinSq) & friends;
-	}
-
-	// no checkers no check mask
-	if (!checkInfo.checkers) {
-
-		checkInfo.checkMask = FULL_BOARD;
-	}
-	// single check
-	else if (popCount(ci.checkers) == 1) {
-
-		Square checkerSq = getLSB(checkInfo.checkers);
-		Bitboard mask = EMPTY_BOARD;
-		setBit(mask, checkerSq);
-
-		// to allow blocking moves for slider checks
-		if (mask & enemySliders)
-			mask |= getRaysBetweenSquare(kSq, checkerSq);
-
-		checkInfo.checkMask = mask;
-	}
-	// multiple check only king move
+		position.movePiece<!side>(ROOK, rookFrom, rookTo);
+		position.movePiece<!side>(KING, target, start);
+    }
 	else {
-
-		checkInfo.checkMask = EMPTY_BOARD;
+		position.movePiece<!side>(history.moved, target, start);
 	}
+
+    if (history.captured != PIECE_NONE) {
+
+		if (moveType != ENPASSANT) {
+			position.addPiece<side>(history.captured, target);
+        }
+		else {
+			position.addPiece<side>(PAWN, target + (side == WHITE ? 8 : -8));
+        }
+    }
+
+	position.updateCombinedOccupancy();
+	position.flipSide();
 }
 
 void makeMove(int move, Position& position, History& history) {

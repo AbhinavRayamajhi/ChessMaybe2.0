@@ -30,7 +30,7 @@ namespace Engine {
             }
             else if (token == "ucinewgame") {
 
-                position.board = Board(startpos);
+                position.setBoard(startpos);
             }
             else if (token == "position") {
 
@@ -38,7 +38,7 @@ namespace Engine {
 
                 if (token == "startpos") {
 
-                    position.board = Board(startpos);
+                    position.setBoard(startpos);
                     iss >> token; // remove moves from stream
                 }
                 else if (token == "fen") {
@@ -48,13 +48,14 @@ namespace Engine {
                         fen += token + " ";
                     }
 
-                    position.board = Board(fen);
+                    position.setBoard(fen);
                 }
  
                 while (iss >> token) {
 
                     History h;
-                    Move move = convertMoveFromString(position.board, token);
+                    Board board = position.getBoard();
+                    Move move = convertMoveFromString(board, token);
                     makeMove(move, position, h);
                 }
             }
@@ -74,11 +75,12 @@ namespace Engine {
             else if (token == "play") {
                 iss >> token;
                 History h;
-                Move move = convertMoveFromString(position.board, token);
+                Board board = position.getBoard();
+                Move move = convertMoveFromString(board, token);
                 makeMove(move, position, h);
             }
             else if (token == "d") {
-                position.board.printBoard();
+                position.printBoard();
             }
             else if (token == "quit") {
 

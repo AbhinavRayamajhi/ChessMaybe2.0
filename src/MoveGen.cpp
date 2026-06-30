@@ -231,7 +231,7 @@ namespace Engine {
 
 	// all pseudo moves
 	template <Color side, Square ePSq, bool captures>
-	void generatePseudoMove(const Position& positon, MoveList& moveList) {
+	void generatePseudoMove(const Position& position, MoveList& moveList) {
 
 		generatePawnMoves<side, ePSq, captures>(position, moveList);
 		generateKnightMove<side, captures>(position, moveList);
@@ -246,75 +246,187 @@ namespace Engine {
 		return RAYS[sq1][sq2];
 	}
 
+	template <Color side>
+	Bitboard squareAttackers(const Board& board, Square sq) {
+
+		Bitboard attackers = 0ULL;
+		Bitboard self = 1ULL << sq;
+
+		// calculate all attacks from the sq and see if the corresponding enemy piece is in that attack
+		attackers |= pawnLeftAttack<side, SQ_NONE>(self, board.pieces[!side][PAWN]);
+		attackers |= pawnRightAttack<side, SQ_NONE>(self, board.pieces[!side][PAWN]);
+		attackers |= getAttackMask<KNIGHT>(sq) & board.pieces[!side][KNIGHT];
+		attackers |= getBishopAttacks(board.occupancy[BOTH], sq) & board.pieces[!side][BISHOP];
+		attackers |= getRookAttacks(board.occupancy[BOTH], sq) & board.pieces[!side][ROOK];
+		attackers |= getQueenAttacks(board.occupancy[BOTH], sq) & board.pieces[!side][QUEEN];
+		attackers |= getAttackMask<KING>(sq)& board.pieces[!side][KING];
+
+		return attackers;
+	}
+
+	// checks if king is being attacked by enemy pieces
+	Bitboard isKingInCheck(Position& position) {
+
+		if (position.side() == WHITE) {
+			Square kSq = getLSB(position.getPiece<WHITE, KING>());
+			return squareAttackers<WHITE>(position.getBoard(), kSq);
+		}
+		else {
+			Square kSq = getLSB(position.getPiece<BLACK, KING>());
+			return squareAttackers<BLACK>(position.getBoard(), kSq);
+		}
+	}
+
+	template <Color side>
+	CheckInfo getCheckInfo(Position& position) {
+
+		CheckInfo ci;
+		Bitboard occ = position.getBothOccupancy();
+
+		Square kSq            = getLSB(position.getPiece<side, KING>());
+		Bitboard enemyB       = position.getPiece<!side, BISHOP>();
+		Bitboard enemyR       = position.getPiece<!side, ROOK>();
+		Bitboard enemyQ       = position.getPiece<!side, QUEEN>();
+		Bitboard friends      = position.getOccupancy<side>();
+		Bitboard enemySliders = enemyB | enemyR | enemyQ;
+
+		// checkers are all pieces attacking the king currently
+		ci.checkers = squareAttackers<side>(position.getBoard(), kSq);
+
+		Bitboard rookAttacks = getRookAttacks(occ, kSq);
+		Bitboard bishopAttacks = getBishopAttacks(occ, kSq);
+
+		// get rid of any friendly piece in the rook rays from king sq and calculate again
+		rookAttacks &= friends;
+		occ ^= rookAttacks;
+		rookAttacks = getRookAttacks(occ, kSq);
+
+		// find enemy pinners if any
+		rookAttacks &= enemyQ | enemyR;
+
+		while (rookAttacks) {
+			Square pinSq = popLSB(rookAttacks);
+			ci.pinned |= getRaysBetweenSquare(kSq, pinSq) & friends;
+		}
+
+		occ = position.getBothOccupancy();
+
+		// get rid of any friendly piece in the bishop rays from king sq and calculate again
+		bishopAttacks &= friends;
+		occ ^= bishopAttacks;
+		bishopAttacks = getBishopAttacks(occ, kSq);
+
+		// find enemy pinners if any
+		bishopAttacks &= enemyQ | enemyB;
+
+		while (bishopAttacks) {
+			Square pinSq = popLSB(bishopAttacks);
+			ci.pinned |= getRaysBetweenSquare(kSq, pinSq) & friends;
+		}
+
+		// no checkers no check mask
+		if (!ci.checkers) {
+
+			ci.checkMask = FULL_BOARD;
+		}
+		// single check
+		else if (popCount(ci.checkers) == 1) {
+
+			Square checkerSq = getLSB(ci.checkers);
+			Bitboard mask = EMPTY_BOARD;
+			setBit(mask, checkerSq);
+
+			// to allow blocking moves for slider checks
+			if (mask & enemySliders)
+				mask |= getRaysBetweenSquare(kSq, checkerSq);
+
+			ci.checkMask = mask;
+		}
+		// multiple check only king move
+		else {
+
+			ci.checkMask = EMPTY_BOARD;
+		}
+
+		return ci;
+	}
+
 	// verifies if a given move is legal
 	template <Color side>
-	bool isLegalMove(Move move, const Position& position) {
+	bool isLegalMove(Move move, Position& position) {
 
+		Square start = getStartSq(move);
+		Square target = getTargetSq(move);
+		Square moveType = getMoveType(move);
 		Square kSq = getLSB(position.getPiece<side, KING>());
 
 		// King moves: target square must NOT be attacked
-		if (getStartSq(move) == kSq) {
-			// We need to check a board without king to prevent x-ray moves from sneaking in
-			Board b = board;
-			b.removePiece<sideToMove>(KING, kSq);
-			b.updateCombinedOccupancy();
+		if (start == kSq) {
 
-			if (squareAttackers<sideToMove>(b, getTargetSq(move))) {
+			// We need to check a board without king to prevent x-ray moves from sneaking in
+			position.removePiece<side>(KING, kSq);
+			position.updateCombinedOccupancy();
+
+			if (squareAttackers<side>(position.getBoard(), target)) {
 				return false;
 			}
-				
-			if (getMoveType(move) == CASTLING)
+
+			// add piece back
+			position.addPiece<side>(KING, kSq);
+			position.updateCombinedOccupancy();
+
+			if (moveType == CASTLING)
 			{
 				// if check no castling
-				if(squareAttackers<sideToMove>(board, getStartSq(move)))
+				if(squareAttackers<side>(position.getBoard(), start))
 					return false;
 
-				switch (getTargetSq(move))
+				switch (target)
 				{
 					// nothing between king and rook and middle sq not checked
 				case G1:
-					return !(squareAttackers<sideToMove>(board, F1) || getBit(board.occupancy[BOTH], F1) ||
-						getBit(board.occupancy[BOTH], G1));
+					return !(squareAttackers<side>(position.getBoard(), F1) || getBit(position.getBothOccupancy(), F1) ||
+						getBit(position.getBothOccupancy(), G1));
 				case C1:
-					return !(squareAttackers<sideToMove>(board, D1) || getBit(board.occupancy[BOTH], D1) ||
-						getBit(board.occupancy[BOTH], C1) || getBit(board.occupancy[BOTH], B1));
+					return !(squareAttackers<side>(position.getBoard(), D1) || getBit(position.getBothOccupancy(), D1) ||
+						getBit(position.getBothOccupancy(), C1) || getBit(position.getBothOccupancy(), B1));
 				case G8:
-					return !(squareAttackers<sideToMove>(board, F8) || getBit(board.occupancy[BOTH], F8) ||
-						getBit(board.occupancy[BOTH], G8));
+					return !(squareAttackers<side>(position.getBoard(), F8) || getBit(position.getBothOccupancy(), F8) ||
+						getBit(position.getBothOccupancy(), G8));
 				case C8:
-					return !(squareAttackers<sideToMove>(board, D8) || getBit(board.occupancy[BOTH], D8) ||
-						getBit(board.occupancy[BOTH], C8) || getBit(board.occupancy[BOTH], B8));
+					return !(squareAttackers<side>(position.getBoard(), D8) || getBit(position.getBothOccupancy(), D8) ||
+						getBit(position.getBothOccupancy(), C8) || getBit(position.getBothOccupancy(), B8));
 				}
 			}
 			return true;
 		}
 
 		// if double-check, only king moves are allowed
-		if (popCount(ci.checkers) >= 2) return false;
+		if (popCount(position.getCheckers()) >= 2) return false;
 
 		// En-passant: simulate the capture and ensure king is not left in check
-		if (getMoveType(move) == ENPASSANT) {
+		if (moveType == ENPASSANT) {
 
-			Board b = board;
+			Board b = position.getBoard();
 
-			b.movePiece<sideToMove>(PAWN, getStartSq(move), board.enPassantSq);
-			b.removePiece<!sideToMove>(PAWN, sideToMove == WHITE ? board.enPassantSq - 8 : board.enPassantSq + 8);
+			b.movePiece<side>(PAWN, start, b.enPassantSq);
+			b.removePiece<!side>(PAWN, side == WHITE ? b.enPassantSq - 8 : b.enPassantSq + 8);
 			b.updateCombinedOccupancy();
 
 			// if king is attacked after en-passant, the move is illegal else legal
-			if (squareAttackers<sideToMove>(b, kSq)) return false;
+			if (squareAttackers<side>(b, kSq)) return false;
 			else return true;
 		}
 
 		// If single check, move must block or capture the checker 
-		if (!getBit(ci.checkMask, getTargetSq(move))) return false;
+		if (!getBit(position.getCheckMask(), target)) return false;
 
 		// If piece is pinned, it must move along the ray between king and target or the target must be between king
 		// and current
-		if (getBit(ci.pinned, getStartSq(move)))
+		if (getBit(position.getPinned(), start))
 		{
-			if (!getBit(getRaysBetweenSquare(kSq, getTargetSq(move)), getStartSq(move)) &&
-				!getBit(getRaysBetweenSquare(kSq, getStartSq(move)), getTargetSq(move)))
+			if (!getBit(getRaysBetweenSquare(kSq, target), start) &&
+				!getBit(getRaysBetweenSquare(kSq, start), target))
 				return false;
 		}
 		
@@ -323,7 +435,7 @@ namespace Engine {
 
 	// calculate MVV_LVA scores
 	template<Color side>
-	int calculateScore(const Board& board, Move m) {
+	int calculateScore(const Position& position, Move m) {
 
 		Square attackerSq = getStartSq(m);
 		Square victimSq = getTargetSq(m);
@@ -332,10 +444,10 @@ namespace Engine {
 		Piece victim = PIECE_NONE;
 
 		for (Piece p = PAWN; p != PIECE_COUNT; ++p) {
-			if (getBit(board.pieces[side][p], attackerSq)) {
+			if (getBit(position.getPiece<side>(p), attackerSq)) {
 				attacker = p;
 			}
-			if (getBit(board.pieces[!side][p], victimSq)) {
+			if (getBit(position.getPiece<!side>(p), victimSq)) {
 				victim = p;
 			}
 		}
@@ -346,32 +458,30 @@ namespace Engine {
 
 	// generate all legal moves by passing all pseduo moves through is legal function
 	template <bool ScoreMoves, bool captures>
-	void generateLegalMoves(const Board& board, MoveList& moveList)
+	void generateLegalMoves(Position& position, MoveList& moveList)
 	{
-		CheckInfo ci;
+		if (position.side() == WHITE) {
 
-		if (board.sideToMove == WHITE) {
+			position.setCheckInfo(getCheckInfo<WHITE>(position));
 
-			ci = getCheckInfo<WHITE>(board);
+			switch (position.epSq()) {
 
-			switch (board.enPassantSq) {
-
-			case A6: generatePseudoMove<WHITE, A6, captures>(board, moveList);  break;
-			case B6: generatePseudoMove<WHITE, B6, captures>(board, moveList);  break;
-			case C6: generatePseudoMove<WHITE, C6, captures>(board, moveList);  break;
-			case D6: generatePseudoMove<WHITE, D6, captures>(board, moveList);  break;
-			case E6: generatePseudoMove<WHITE, E6, captures>(board, moveList);  break;
-			case F6: generatePseudoMove<WHITE, F6, captures>(board, moveList);  break;
-			case G6: generatePseudoMove<WHITE, G6, captures>(board, moveList);  break;
-			case H6: generatePseudoMove<WHITE, H6, captures>(board, moveList);  break;
-			default: generatePseudoMove<WHITE, SQ_NONE, captures>(board, moveList);  break;
+			case A6: generatePseudoMove<WHITE, A6, captures>(position, moveList);  break;
+			case B6: generatePseudoMove<WHITE, B6, captures>(position, moveList);  break;
+			case C6: generatePseudoMove<WHITE, C6, captures>(position, moveList);  break;
+			case D6: generatePseudoMove<WHITE, D6, captures>(position, moveList);  break;
+			case E6: generatePseudoMove<WHITE, E6, captures>(position, moveList);  break;
+			case F6: generatePseudoMove<WHITE, F6, captures>(position, moveList);  break;
+			case G6: generatePseudoMove<WHITE, G6, captures>(position, moveList);  break;
+			case H6: generatePseudoMove<WHITE, H6, captures>(position, moveList);  break;
+			default: generatePseudoMove<WHITE, SQ_NONE, captures>(position, moveList);  break;
 			}
 
 			if constexpr (!captures) {
-				if (board.castlingRights & WHITE_OO) {
+				if (position.getCR() & WHITE_OO) {
 					generateWhiteCastles<WHITE_OO>(moveList);
 				}
-				if (board.castlingRights & WHITE_OOO) {
+				if (position.getCR() & WHITE_OOO) {
 					generateWhiteCastles<WHITE_OOO>(moveList);
 				}
 			}
@@ -379,35 +489,35 @@ namespace Engine {
 			int index = 0;
 			while(index < moveList.end) {
 
-				if (!isLegalMove<WHITE>(moveList.list[index], board, ci)) {
+				if (!isLegalMove<WHITE>(moveList.list[index], position)) {
 					moveList.removeMove(index);
 				}
 				else {
-					if (ScoreMoves) moveList.score[index] = calculateScore<WHITE>(board, moveList.list[index]);
+					if (ScoreMoves) moveList.score[index] = calculateScore<WHITE>(position, moveList.list[index]);
 					++index;
 				}
 			}
 		}
 		else {
-			ci = getCheckInfo<BLACK>(board);
-			switch (board.enPassantSq) {
+			position.setCheckInfo(getCheckInfo<BLACK>(position));
+			switch (position.epSq()) {
 
-			case A3: generatePseudoMove<BLACK, A3, captures>(board, moveList);  break;
-			case B3: generatePseudoMove<BLACK, B3, captures>(board, moveList);  break;
-			case C3: generatePseudoMove<BLACK, C3, captures>(board, moveList);  break;
-			case D3: generatePseudoMove<BLACK, D3, captures>(board, moveList);  break;
-			case E3: generatePseudoMove<BLACK, E3, captures>(board, moveList);  break;
-			case F3: generatePseudoMove<BLACK, F3, captures>(board, moveList);  break;
-			case G3: generatePseudoMove<BLACK, G3, captures>(board, moveList);  break;
-			case H3: generatePseudoMove<BLACK, H3, captures>(board, moveList);  break;
-			default: generatePseudoMove<BLACK, SQ_NONE, captures>(board, moveList);  break;
+			case A3: generatePseudoMove<BLACK, A3, captures>(position, moveList);  break;
+			case B3: generatePseudoMove<BLACK, B3, captures>(position, moveList);  break;
+			case C3: generatePseudoMove<BLACK, C3, captures>(position, moveList);  break;
+			case D3: generatePseudoMove<BLACK, D3, captures>(position, moveList);  break;
+			case E3: generatePseudoMove<BLACK, E3, captures>(position, moveList);  break;
+			case F3: generatePseudoMove<BLACK, F3, captures>(position, moveList);  break;
+			case G3: generatePseudoMove<BLACK, G3, captures>(position, moveList);  break;
+			case H3: generatePseudoMove<BLACK, H3, captures>(position, moveList);  break;
+			default: generatePseudoMove<BLACK, SQ_NONE, captures>(position, moveList);  break;
 			}
 
 			if constexpr (!captures) {
-				if (board.castlingRights & BLACK_OO) {
+				if (position.getCR() & BLACK_OO) {
 					generateBlackCastles<BLACK_OO>(moveList);
 				}
-				if (board.castlingRights & BLACK_OOO) {
+				if (position.getCR() & BLACK_OOO) {
 					generateBlackCastles<BLACK_OOO>(moveList);
 				}
 			}
@@ -415,19 +525,19 @@ namespace Engine {
 			int index = 0;
 			while(index < moveList.end) {
 
-				if (!isLegalMove<BLACK>(moveList.list[index], board, ci)) {
+				if (!isLegalMove<BLACK>(moveList.list[index], position)) {
 					moveList.removeMove(index);
 					}
 				else {
-					if (ScoreMoves) moveList.score[index] = calculateScore<BLACK>(board, moveList.list[index]);
+					if (ScoreMoves) moveList.score[index] = calculateScore<BLACK>(position, moveList.list[index]);
 					++index;
 				}
 			}
 		}
 	}
 	
-	template void generateLegalMoves<true, true>(const Board& board, MoveList& moveList);
-	template void generateLegalMoves<true, false>(const Board& board, MoveList& moveList);
-	template void generateLegalMoves<false, true>(const Board& board, MoveList& moveList);
-	template void generateLegalMoves<false, false>(const Board& board, MoveList& moveList);
+	template void generateLegalMoves<true, true>(Position& position, MoveList& moveList);
+	template void generateLegalMoves<true, false>(Position& position, MoveList& moveList);
+	template void generateLegalMoves<false, true>(Position& position, MoveList& moveList);
+	template void generateLegalMoves<false, false>(Position& position, MoveList& moveList);
 }

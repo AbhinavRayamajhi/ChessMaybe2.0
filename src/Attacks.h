@@ -236,3 +236,4 @@ inline Bitboard pawnRightAttack(Bitboard pawns, Bitboard enemy) {
 }
 
 
+

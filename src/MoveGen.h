@@ -12,14 +12,15 @@
 #include "Position.h"
 
 namespace Engine {
-	
-	Bitboard isKingInCheck(const Board& board);
+
+	// checks if king is being attacked by enemy pieces
+	Bitboard isKingInCheck(Position& position);
 
 	template<bool ScoreMoves, bool captures>
-	void generateLegalMoves(const Board& board, MoveList& moveList);
+	void generateLegalMoves(Position& position, MoveList& moveList);
 
-	extern template void generateLegalMoves<true, true>(const Board& board, MoveList& moveList);
-	extern template void generateLegalMoves<true, false>(const Board& board, MoveList& moveList);
-	extern template void generateLegalMoves<false, true>(const Board& board, MoveList& moveList);
-	extern template void generateLegalMoves<false, false>(const Board& board, MoveList& moveList);
+	extern template void generateLegalMoves<true, true>(Position& position, MoveList& moveList);
+	extern template void generateLegalMoves<true, false>(Position& position, MoveList& moveList);
+	extern template void generateLegalMoves<false, true>(Position& position, MoveList& moveList);
+	extern template void generateLegalMoves<false, false>(Position& position, MoveList& moveList);
 }

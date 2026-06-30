@@ -12,13 +12,14 @@ namespace Engine {
 
 	inline int quiescenceSearch(Position& position, int alpha, int beta, int depth) {
 
-		if (depth == 0) return evaluate(position.board);
+		Board b = position.getBoard();
+		if (depth == 0) return evaluate(b);
 
 		MoveList moveList;
 
-		if (isKingInCheck(position.board)) {
+		if (isKingInCheck(position)) {
 
-			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
+			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position, moveList);
 
 			if (moveList.end == 0) {
 
@@ -27,10 +28,10 @@ namespace Engine {
 		}
 		else {
 
-			int standPat = evaluate(position.board);
+			int standPat = evaluate(b);
 			if (standPat >= beta) return beta;
 			if (standPat > alpha) alpha = standPat;
-			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_TRUE>(position.board, moveList);
+			generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_TRUE>(position, moveList);
 		}
 
 		for (int i = 0; i < moveList.end; ++i) {
@@ -71,11 +72,11 @@ namespace Engine {
 		if (alpha >= beta) return alpha;            
 
 		MoveList moveList;
-		generateLegalMoves <SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
+		generateLegalMoves <SCORE_GEN_TRUE, CAPTURE_FALSE>(position, moveList);
 
 		if (moveList.end == 0) {
 
-			if (isKingInCheck(position.board)) {
+			if (isKingInCheck(position)) {
 				return -(INF + depth);
 			}
 			else {
@@ -117,7 +118,7 @@ namespace Engine {
 	inline int getBestMove(Position& position, const int MAX_DEPTH, uint64_t& nodes, bool debug) {
 
 		MoveList moveList;
-		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position.board, moveList);
+		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position, moveList);
 
 		if (moveList.end == 0) {
 			// no legal moves - checkmate or stalemate

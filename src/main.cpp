@@ -16,15 +16,15 @@ int main() {
 	Engine::initMagics();
 
 	//Engine::uciLoop();
-	Engine::testSuite();
-#if 0
+	//Engine::testSuite();
+#if 1
 	// search
-	int depth = 7;
-	bool debug = false;
+	int depth = 3;
+	bool debug = true;
 	uint64_t nodes = 0;
 
 	Position position;
-	position.board = Board("5rk1/pp3pp1/8/8/8/6K1/4r2n/4r3 b - - 3 45");
+	position.setBoard("rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1");
 	int bestMove = Engine::getBestMove(position, depth, nodes, debug);
 	std::cout << "Best Move: ";
 	printMove(bestMove);
