@@ -19,13 +19,13 @@ __attribute__((always_inline)) inline void makeMoveT(int move, Position& positio
 	switch (target) {
 		
 		case H1:
-			position.setCastlingRights(history.castlingRights & WHITE_OO); break;
+			position.setCastlingRights(position.cr() & ~WHITE_OO); break;
 		case A1:
-			position.setCastlingRights(history.castlingRights & WHITE_OOO); break;
+			position.setCastlingRights(position.cr() & ~WHITE_OOO); break;
 		case H8:
-			position.setCastlingRights(history.castlingRights & BLACK_OO); break;
+			position.setCastlingRights(position.cr() & ~BLACK_OO); break;
 		case A8:
-			position.setCastlingRights(history.castlingRights & BLACK_OOO); break;
+			position.setCastlingRights(position.cr() & ~BLACK_OOO); break;
 		default: break;
 	}
 
@@ -33,13 +33,13 @@ __attribute__((always_inline)) inline void makeMoveT(int move, Position& positio
 	switch (start) {
 		
 		case H1:
-			position.setCastlingRights(history.castlingRights & WHITE_OO); break;
+			position.setCastlingRights(position.cr() & ~WHITE_OO); break;
 		case A1:
-			position.setCastlingRights(history.castlingRights & WHITE_OOO); break;
+			position.setCastlingRights(position.cr() & ~WHITE_OOO); break;
 		case H8:
-			position.setCastlingRights(history.castlingRights & BLACK_OO); break;
+			position.setCastlingRights(position.cr() & ~BLACK_OO); break;
 		case A8:
-			position.setCastlingRights(history.castlingRights & BLACK_OOO); break;
+			position.setCastlingRights(position.cr() & ~BLACK_OOO); break;
 		default: break;
 	}
 

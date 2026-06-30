@@ -364,16 +364,13 @@ namespace Engine {
 		if (start == kSq) {
 
 			// We need to check a board without king to prevent x-ray moves from sneaking in
-			position.removePiece<side>(KING, kSq);
-			position.updateCombinedOccupancy();
+			Board b = position.getBoard();
+			b.removePiece<side>(KING, kSq);
+			b.updateCombinedOccupancy();
 
-			if (squareAttackers<side>(position.getBoard(), target)) {
+			if (squareAttackers<side>(b, target)) {
 				return false;
 			}
-
-			// add piece back
-			position.addPiece<side>(KING, kSq);
-			position.updateCombinedOccupancy();
 
 			if (moveType == CASTLING)
 			{

@@ -60,16 +60,43 @@ namespace Engine {
                 }
             }
             else if (token == "go") {
-                
-                int depth = 7;
+
+                int whiteTime = -1;
+                int blackTime = -1;
+                int whiteInc = 0;
+                int blackInc = 0;
+                int depth = 10;
+                int movetime = -1;
 
                 while (iss >> token) {
 
-                    if (token == "depth") iss >> depth;
+                    if (token == "depth")
+                        iss >> depth;
+                    else if (token == "movetime") {
+                        iss >> movetime;
+                        movetime = 3000;
+                    }
+                    else if (token == "wtime")
+                        iss >> whiteTime;
+                    else if (token == "btime")
+                        iss >> blackTime;
+                    else if (token == "winc")
+                        iss >> whiteInc;
+                    else if (token == "binc")
+                        iss >> blackInc;
                 }
 
+                int myTime;
+
+                if (movetime != -1)
+                    myTime = movetime;
+                else if (position.side() == WHITE)
+                    myTime = whiteTime / 100 + whiteInc;
+                else
+                    myTime = blackTime / 100 + blackInc;
+                
                 uint64_t nodes = 0;
-                Move bestMove = getBestMove(position, depth, nodes, false);
+                Move bestMove = getBestMove(position, depth, nodes, myTime, false);
                 std::cout << "bestmove " << convertMoveToString(bestMove) << std::endl;
             }
             else if (token == "play") {

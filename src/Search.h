@@ -1,5 +1,7 @@
 #pragma once
 
+#include <chrono>
+
 #include "Definitions.h"
 #include "Evaluation.h"
 #include "Move.h"
@@ -59,7 +61,7 @@ namespace Engine {
 		return alpha;
 	}
 
-	inline int search(Position& position, int depth, int alpha, int beta, uint64_t& nodes) {
+	inline int search(Position& position, int depth, int alpha, int beta, uint64_t& nodes, std::chrono::steady_clock::time_point stop, bool& stopped) {
 
 		if (depth == 0) {
 			return quiescenceSearch(position, alpha, beta, QUIESCENCE_DEPTH);
@@ -99,10 +101,17 @@ namespace Engine {
 
 			History h;
 			makeMove(moveList.list[i], position, h);
-			int score = -search(position, depth - 1, -beta, -alpha, nodes);
+			int score = -search(position, depth - 1, -beta, -alpha, nodes, stop, stopped);
+			if (stopped) return 0;
 			unmakeMove(position, h);
 
 			nodes++;
+			if ((nodes & 2047) == 0) {
+				if (std::chrono::steady_clock::now() >= stop) {
+					stopped = true;
+					return 0;
+				}
+			}
 
 			if (score >= beta) {
 				return beta;
@@ -115,10 +124,14 @@ namespace Engine {
 		return alpha;
 	}
 
-	inline int getBestMove(Position& position, const int MAX_DEPTH, uint64_t& nodes, bool debug) {
+	inline int getBestMove(Position& position, const int MAX_DEPTH, uint64_t& nodes, int time, bool debug) {
+
+		auto stop = std::chrono::steady_clock::now() + std::chrono::milliseconds(time);
+		bool stopped = false;
 
 		MoveList moveList;
 		generateLegalMoves<SCORE_GEN_TRUE, CAPTURE_FALSE>(position, moveList);
+
 
 		if (moveList.end == 0) {
 			// no legal moves - checkmate or stalemate
@@ -150,7 +163,8 @@ namespace Engine {
 
 				History h;
 				makeMove(moveList.list[i], position, h);
-				int currentScore = -search(position, depth - 1, -beta, -bestScore, nodes);
+				int currentScore = -search(position, depth - 1, -beta, -bestScore, nodes, stop, stopped);
+				if (stopped) return bestMove;
 				unmakeMove(position, h);
 
 
@@ -161,10 +175,11 @@ namespace Engine {
 					bestMove = moveList.list[i];
 				}
 
-				if (debug) {
-					printMove(moveList.list[i]);
-					std::cout << ": " << currentScore << std::endl;
-				}
+
+				// if (debug) {
+				// 	printMove(moveList.list[i]);
+				// 	std::cout << ": " << currentScore << std::endl;
+				// }
 			}
 
 			if (bestMove != moveList.list[0]) {
